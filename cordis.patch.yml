@@ -1,0 +1,4 @@
+- insert:
+    - id: local-model-assistant
+      name: '@local/dsh-model-assistant'
+      config: {}
