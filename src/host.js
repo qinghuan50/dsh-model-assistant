@@ -6,11 +6,20 @@ const route = z.object({
   supplier: z.string(), contextWindow: z.number().step(1).min(1), maxTokens: z.number().step(1).min(1),
   inputMultiplier: z.number().min(0), outputMultiplier: z.number().min(0),
   reasoning: z.boolean(), text: z.boolean(), tools: z.boolean(), vision: z.boolean(), streaming: z.boolean(),
+  maxInputTokens: z.number().step(1).min(1), knowledgeCutoff: z.string(),
 });
 export const Config = z.object({
   enabled: z.boolean().default(true).volatile(),
   showSidebar: z.boolean().default(true).volatile(),
   metadata: z.dict(route).default({}).volatile(),
+  providerKinds: z.dict(z.union(["official", "thirdParty", "custom"])).default({}).volatile(),
+  researchModel: z.string().default("").volatile(),
+  researchCheckedAt: z.dict(z.number()).default({}).volatile(),
+  references: z.dict(z.object({
+    metadata: route,
+    sources: z.array(z.object({ field: z.string(), url: z.string(), title: z.string(), quote: z.string(), official: z.boolean() })),
+    fetchedAt: z.number(),
+  })).default({}).volatile(),
 });
 
 /** Authenticated Host RPC. Only configured endpoints and sanitized catalog fields are exposed. */
@@ -23,6 +32,9 @@ class ModelAssistantService extends TypertRemoteService {
   }
   @Remote
   async catalog(force) { return this.discovery.catalog(force); }
+  /** Explicit web research is separate from directory refresh to preserve older Client/Host compatibility. */
+  @Remote
+  async refreshReferences(provider, preferredModel) { return this.discovery.catalog(false, provider, preferredModel); }
   @Remote
   async prepare(provider, modelId, effort) {
     try { return await this.discovery.prepare(provider, modelId, effort); }
@@ -36,7 +48,7 @@ export function apply(ctx) {
   ctx.inject(["tools", "modelAssistant"], (child) => {
     child.tools.register({
       name: "model_assistant_catalog",
-      description: "Read configured providers' sanitized /v1/models catalog, or prepare one advertised model for native selection. Never returns API keys or headers.",
+      description: "Read configured providers' sanitized native or API model catalog, or prepare one advertised API model for native selection. Web research runs only on explicit UI refresh. Never returns API keys or headers.",
       parameters: {
         type: "object", additionalProperties: false, required: ["action"],
         properties: {

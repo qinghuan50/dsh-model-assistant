@@ -38,7 +38,29 @@ var import_react = __toESM(require("react"), 1);
 var import_react_dom = require("react-dom");
 
 // src/styles.css
-var styles_default = '.ma-page {\n  box-sizing: border-box;\n  height: 100%;\n  overflow: auto;\n  color: var(--dsw-alias-label-primary);\n  padding: calc(28px + var(--dsh-frame-top-clearance, 0px))\n    clamp(20px, 4vw, 48px) 48px;\n  font-size: 13px;\n}\n.ma-page-content {\n  max-width: 780px;\n  margin: 0 auto;\n}\n.ma-page h1 {\n  font-size: 22px;\n  font-weight: 500;\n  line-height: 30px;\n  margin: 24px 0 10px;\n}\n.ma-intro,\n.ma-note {\n  color: var(--dsw-alias-label-tertiary);\n  line-height: 1.7;\n}\n.ma-note {\n  font-size: 12px;\n  margin-top: 18px;\n}\n.ma-back {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  cursor: pointer;\n  padding: 4px 0;\n  font: inherit;\n}\n.ma-settings {\n  margin-top: 28px;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 16px;\n}\n.ma-setting-row {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 24px;\n  padding: 24px;\n}\n.ma-setting-row + .ma-setting-row {\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n}\n.ma-setting-row > div {\n  min-width: 0;\n}\n.ma-setting-row > div > span {\n  font-size: 14px;\n  font-weight: 500;\n}\n.ma-setting-row p {\n  font-size: 12px;\n  line-height: 1.7;\n  margin: 8px 0 0;\n  color: var(--dsw-alias-label-tertiary);\n}\n.ma-switch {\n  width: 42px;\n  height: 24px;\n  padding: 2px;\n  border: 0;\n  border-radius: 24px;\n  display: flex;\n  align-items: center;\n  flex-shrink: 0;\n  background: var(--dsw-alias-interactive-bg-hover);\n  cursor: pointer;\n}\n.ma-switch > span {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  background: var(--dsw-alias-label-secondary);\n  transition: transform 0.15s;\n}\n.ma-switch[aria-checked="true"] {\n  background: var(--dsw-alias-state-business-primary);\n}\n.ma-switch[aria-checked="true"] > span {\n  transform: translateX(18px);\n  background: var(--dsw-alias-label-primary-foreground);\n}\n.ma-page button:disabled,\n.ma-menu button:disabled {\n  opacity: 0.55;\n  cursor: default;\n}\n.ma-page button:focus-visible,\n.ma-page input:focus-visible,\n.ma-page select:focus-visible,\n.ma-menu button:focus-visible,\n.ma-menu input:focus-visible,\n.ma-menu select:focus-visible,\n.ma-trigger:focus-visible {\n  outline: 2px solid var(--dsw-alias-state-business-primary);\n  outline-offset: 2px;\n}\n.ma-effort-compact:focus-visible {\n  outline: 2px solid var(--dsw-alias-state-business-primary);\n  outline-offset: 2px;\n}\n.ma-seat {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  min-width: 0;\n}\n.ma-effort-compact {\n  max-width: 125px;\n  height: 28px;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  border: 0;\n  border-radius: 6px;\n  padding: 2px 4px;\n  font: inherit;\n  font-size: 12px;\n  cursor: pointer;\n}\n.ma-effort-compact:hover { background: var(--dsw-alias-interactive-bg-hover); }\n.ma-effort-compact:disabled { opacity: 0.55; cursor: default; }\n.ma-seat-error { color: var(--dsw-alias-state-error-primary); font-size: 11px; }\n.ma-trigger {\n  max-width: min(530px, 55cqw);\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  min-width: 0;\n  padding: 2px 4px 2px 8px;\n  border: 0;\n  border-radius: 6px;\n  height: 28px;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  font: inherit;\n  font-size: 13px;\n  cursor: pointer;\n  white-space: nowrap;\n}\n.ma-trigger > span:first-child {\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n.ma-trigger:hover {\n  background: var(--dsw-alias-interactive-bg-hover);\n}\n.ma-trigger:disabled {\n  opacity: 0.55;\n  cursor: default;\n}\n.ma-badges {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  white-space: nowrap;\n  flex-shrink: 0;\n}\n.ma-badge {\n  border: 0.5px solid var(--dsw-alias-border-l3);\n  background: var(--dsw-alias-bg-module-platform);\n  color: var(--dsw-alias-label-secondary);\n  border-radius: 5px;\n  padding: 1px 6px;\n  font-size: 11px;\n  line-height: 17px;\n  max-width: 150px;\n  text-overflow: ellipsis;\n  overflow: hidden;\n}\n.ma-channel {\n  color: var(--dsw-alias-state-business-primary);\n  border-color: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 40%,\n    transparent\n  );\n  background: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 6%,\n    var(--dsw-alias-bg-base)\n  );\n}\n.ma-cap-icons {\n  display: inline-flex;\n  align-items: center;\n  gap: 7px;\n  flex-shrink: 0;\n  color: var(--dsw-alias-label-caption);\n}\n.ma-menu {\n  box-sizing: border-box;\n  position: fixed;\n  z-index: 1200;\n  display: flex;\n  flex-direction: column;\n  width: min(900px, calc(100vw - 24px));\n  max-height: calc(100dvh - 32px);\n  padding: 16px 10px 0;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 16px;\n  box-shadow: var(--dsw-elevation-prominent);\n  font-size: 13px;\n  line-height: 1.5;\n}\n.ma-search {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin: 0 8px;\n  background: var(--dsw-alias-bg-module-platform);\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 9px;\n  padding: 8px 11px;\n  color: var(--dsw-alias-label-tertiary);\n  flex-shrink: 0;\n}\n.ma-search input {\n  min-width: 0;\n  flex: 1;\n  outline: 0 !important;\n  border: 0;\n  padding: 0;\n  background: none;\n  color: var(--dsw-alias-label-primary);\n  font: inherit;\n}\n.ma-search button {\n  padding: 0;\n  background: none;\n  border: 0;\n  color: inherit;\n  display: flex;\n  align-items: center;\n  cursor: pointer;\n}\n.ma-filters {\n  display: flex;\n  align-items: center;\n  gap: 9px;\n  flex-wrap: wrap;\n  padding: 15px 8px 17px;\n  flex-shrink: 0;\n}\n.ma-filters select {\n  max-width: 180px;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 18px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  font: inherit;\n  padding: 5px 12px;\n  cursor: pointer;\n}\n.ma-table-head,\n.ma-row {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) 125px 125px 140px 20px;\n  gap: 12px;\n  align-items: center;\n  padding: 10px 16px;\n}\n.ma-table-head {\n  font-size: 12px;\n  color: var(--dsw-alias-label-caption);\n  padding-top: 4px;\n  padding-bottom: 7px;\n}\n.ma-rows {\n  min-height: 0;\n  max-height: 340px;\n  overflow: auto;\n}\n.ma-row {\n  width: 100%;\n  background: none;\n  border: 0;\n  border-radius: 10px;\n  min-height: 56px;\n  font: inherit;\n  color: inherit;\n  cursor: pointer;\n  text-align: left;\n}\n.ma-row:hover,\n.ma-row:focus-visible {\n  background: var(--dsw-alias-interactive-bg-hover);\n}\n.ma-row[aria-pressed="true"] {\n  background: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 10%,\n    var(--dsw-alias-bg-base)\n  );\n}\n.ma-model {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  min-width: 0;\n}\n.ma-model strong {\n  font-weight: 500;\n  white-space: nowrap;\n  text-overflow: ellipsis;\n  overflow: hidden;\n  min-width: 0;\n}\n.ma-context,\n.ma-ratio {\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n.ma-input-limit { display: block; font-size: 10px; color: var(--dsw-alias-label-caption); }\n.ma-caps {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  flex-wrap: wrap;\n}\n.ma-caps > span {\n  font-size: 11px;\n  line-height: 17px;\n  padding: 1px 5px;\n  border-radius: 6px;\n  background: var(--dsw-alias-bg-module-platform);\n  color: var(--dsw-alias-label-secondary);\n}\n.ma-caps small {\n  color: var(--dsw-alias-label-caption);\n  font-size: 12px;\n}\n.ma-check {\n  color: var(--dsw-alias-state-business-primary);\n  display: flex;\n  justify-content: center;\n}\n.ma-foot {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 11px;\n  color: var(--dsw-alias-label-caption);\n  margin: 8px 12px 0;\n  padding: 13px 0 15px;\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n  flex-shrink: 0;\n}\n.ma-foot svg {\n  flex-shrink: 0;\n}\n.ma-error {\n  padding: 10px;\n  color: var(--dsw-alias-state-error-primary);\n  font-size: 12px;\n  overflow-wrap: anywhere;\n}\n.ma-error button {\n  margin-left: 12px;\n  color: inherit;\n  font: inherit;\n  background: none;\n  border: 0;\n  cursor: pointer;\n  text-decoration: underline;\n}\n.ma-empty {\n  text-align: center;\n  padding: 35px;\n  color: var(--dsw-alias-label-tertiary);\n}\n.ma-effort {\n  padding: 9px 16px;\n  display: flex;\n  align-items: center;\n  gap: 14px;\n  color: var(--dsw-alias-label-secondary);\n  font-size: 12px;\n}\n.ma-effort-note {\n  color: var(--dsw-alias-label-caption);\n  font-size: 11px;\n  margin: 0;\n}\n.ma-effort-choices { display: flex; flex-wrap: wrap; gap: 6px; }\n.ma-effort-choices button {\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 7px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-secondary);\n  padding: 4px 10px;\n  font: inherit;\n  cursor: pointer;\n}\n.ma-effort-choices button[aria-pressed="true"] {\n  color: var(--dsw-alias-state-business-primary);\n  border-color: var(--dsw-alias-state-business-primary);\n  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 8%, var(--dsw-alias-bg-base));\n}\n.ma-text-button {\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-state-business-primary);\n  font: inherit;\n  font-size: 12px;\n  cursor: pointer;\n}\n.ma-editor {\n  margin-top: 34px;\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n  padding-top: 20px;\n}\n.ma-editor summary {\n  cursor: pointer;\n  font-size: 14px;\n}\n.ma-editor > p {\n  color: var(--dsw-alias-label-tertiary);\n  line-height: 1.7;\n  font-size: 12px;\n}\n.ma-field {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  font-size: 12px;\n  color: var(--dsw-alias-label-secondary);\n  margin-top: 16px;\n}\n.ma-field input,\n.ma-field select {\n  box-sizing: border-box;\n  min-width: 0;\n  width: 100%;\n  height: 34px;\n  font: inherit;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 7px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  padding: 5px 9px;\n}\n.ma-fields {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 0 18px;\n}\n.ma-primary {\n  font: inherit;\n  font-size: 12px;\n  background: var(--dsw-alias-state-business-primary);\n  color: var(--dsw-alias-label-primary-foreground);\n  border: 0;\n  border-radius: 7px;\n  padding: 8px 13px;\n  margin-top: 23px;\n  cursor: pointer;\n}\n@media (max-width: 850px) {\n  .ma-table-head,\n  .ma-row {\n    grid-template-columns: minmax(0, 1fr) 120px 115px 105px 18px;\n    gap: 7px;\n  }\n  .ma-model {\n    gap: 7px;\n    flex-wrap: wrap;\n  }\n  .ma-badge {\n    max-width: 110px;\n  }\n  .ma-trigger .ma-badge {\n    max-width: 90px;\n  }\n}\n@media (max-width: 650px) {\n  .ma-table-head {\n    display: none;\n  }\n  .ma-row {\n    grid-template-columns: 1fr auto 18px;\n    grid-template-rows: auto auto;\n    gap: 8px;\n    padding: 12px;\n    min-height: 82px;\n  }\n  .ma-model {\n    grid-column: 1/3;\n  }\n  .ma-context {\n    grid-row: 2;\n    grid-column: 1;\n    font-size: 11px;\n    color: var(--dsw-alias-label-secondary);\n  }\n  .ma-ratio {\n    grid-row: 2;\n    grid-column: 1;\n    margin-left: 140px;\n    font-size: 11px;\n    color: var(--dsw-alias-label-secondary);\n  }\n  .ma-caps {\n    grid-row: 2;\n    grid-column: 2;\n  }\n  .ma-check {\n    grid-row: 1/3;\n    grid-column: 3;\n  }\n  .ma-caps > span {\n    font-size: 10px;\n    padding: 0 4px;\n  }\n  .ma-filters {\n    gap: 6px;\n    flex-wrap: nowrap;\n    overflow: auto;\n  }\n  .ma-filters select {\n    font-size: 11px;\n    max-width: 140px;\n    padding: 5px 7px;\n  }\n  .ma-page {\n    padding-inline: 20px;\n  }\n  .ma-setting-row {\n    padding: 20px 16px;\n  }\n  .ma-setting-row p {\n    font-size: 11px;\n  }\n  .ma-trigger {\n    max-width: 65cqw;\n    font-size: 12px;\n    gap: 5px;\n  }\n  .ma-trigger .ma-cap-icons {\n    display: none;\n  }\n  .ma-fields {\n    grid-template-columns: 1fr;\n  }\n  .ma-foot {\n    font-size: 10px;\n  }\n  .ma-badge {\n    max-width: 100px;\n  }\n}\n\n.ma-embedded-page .ma-page { height: auto; padding: 8px 0 24px; }\n.ma-embedded-page .ma-back { display: none; }\n.ma-embedded-page .ma-page h1 { margin-top: 0; font-size: 18px; }\n';
+var styles_default = '.ma-page {\n  box-sizing: border-box;\n  height: 100%;\n  overflow: auto;\n  color: var(--dsw-alias-label-primary);\n  padding: calc(28px + var(--dsh-frame-top-clearance, 0px))\n    clamp(20px, 4vw, 48px) 48px;\n  font-size: 13px;\n}\n.ma-page-content {\n  max-width: 780px;\n  margin: 0 auto;\n}\n.ma-page h1 {\n  font-size: 22px;\n  font-weight: 500;\n  line-height: 30px;\n  margin: 24px 0 10px;\n}\n.ma-intro,\n.ma-note {\n  color: var(--dsw-alias-label-tertiary);\n  line-height: 1.7;\n}\n.ma-note {\n  font-size: 12px;\n  margin-top: 18px;\n}\n.ma-back {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  cursor: pointer;\n  padding: 4px 0;\n  font: inherit;\n}\n.ma-settings {\n  margin-top: 28px;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 16px;\n}\n.ma-setting-row {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 24px;\n  padding: 24px;\n}\n.ma-setting-row + .ma-setting-row {\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n}\n.ma-setting-row > div {\n  min-width: 0;\n}\n.ma-setting-row > div > span {\n  font-size: 14px;\n  font-weight: 500;\n}\n.ma-setting-row p {\n  font-size: 12px;\n  line-height: 1.7;\n  margin: 8px 0 0;\n  color: var(--dsw-alias-label-tertiary);\n}\n.ma-switch {\n  width: 42px;\n  height: 24px;\n  padding: 2px;\n  border: 0;\n  border-radius: 24px;\n  display: flex;\n  align-items: center;\n  flex-shrink: 0;\n  background: var(--dsw-alias-interactive-bg-hover);\n  cursor: pointer;\n}\n.ma-switch > span {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  background: var(--dsw-alias-label-secondary);\n  transition: transform 0.15s;\n}\n.ma-switch[aria-checked="true"] {\n  background: var(--dsw-alias-state-business-primary);\n}\n.ma-switch[aria-checked="true"] > span {\n  transform: translateX(18px);\n  background: var(--dsw-alias-label-primary-foreground);\n}\n.ma-page button:disabled,\n.ma-menu button:disabled {\n  opacity: 0.55;\n  cursor: default;\n}\n.ma-page button:focus-visible,\n.ma-page input:focus-visible,\n.ma-page select:focus-visible,\n.ma-menu button:focus-visible,\n.ma-menu input:focus-visible,\n.ma-menu select:focus-visible,\n.ma-trigger:focus-visible {\n  outline: 2px solid var(--dsw-alias-state-business-primary);\n  outline-offset: 2px;\n}\n.ma-effort-compact:focus-visible {\n  outline: 2px solid var(--dsw-alias-state-business-primary);\n  outline-offset: 2px;\n}\n.ma-seat {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  min-width: 0;\n}\n.ma-effort-compact {\n  max-width: 125px;\n  height: 28px;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  border: 0;\n  border-radius: 6px;\n  padding: 2px 4px;\n  font: inherit;\n  font-size: 12px;\n  cursor: pointer;\n}\n.ma-effort-compact:hover { background: var(--dsw-alias-interactive-bg-hover); }\n.ma-effort-compact:disabled { opacity: 0.55; cursor: default; }\n.ma-seat-error { color: var(--dsw-alias-state-error-primary); font-size: 11px; }\n.ma-trigger {\n  max-width: min(530px, 55cqw);\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  min-width: 0;\n  padding: 2px 4px 2px 8px;\n  border: 0;\n  border-radius: 6px;\n  height: 28px;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  font: inherit;\n  font-size: 13px;\n  cursor: pointer;\n  white-space: nowrap;\n}\n.ma-trigger > span:first-child {\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n.ma-trigger:hover {\n  background: var(--dsw-alias-interactive-bg-hover);\n}\n.ma-trigger:disabled {\n  opacity: 0.55;\n  cursor: default;\n}\n.ma-badges {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  white-space: nowrap;\n  flex-shrink: 0;\n}\n.ma-badge {\n  border: 0.5px solid var(--dsw-alias-border-l3);\n  background: var(--dsw-alias-bg-module-platform);\n  color: var(--dsw-alias-label-secondary);\n  border-radius: 5px;\n  padding: 1px 6px;\n  font-size: 11px;\n  line-height: 17px;\n  max-width: 150px;\n  text-overflow: ellipsis;\n  overflow: hidden;\n}\n.ma-channel {\n  color: var(--dsw-alias-state-business-primary);\n  border-color: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 40%,\n    transparent\n  );\n  background: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 6%,\n    var(--dsw-alias-bg-base)\n  );\n}\n.ma-cap-icons {\n  display: inline-flex;\n  align-items: center;\n  gap: 7px;\n  flex-shrink: 0;\n  color: var(--dsw-alias-label-caption);\n}\n.ma-menu {\n  box-sizing: border-box;\n  position: fixed;\n  z-index: 1200;\n  display: flex;\n  flex-direction: column;\n  width: min(900px, calc(100vw - 24px));\n  max-height: calc(100dvh - 32px);\n  padding: 16px 10px 0;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 16px;\n  box-shadow: var(--dsw-elevation-prominent);\n  font-size: 13px;\n  line-height: 1.5;\n}\n.ma-search {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin: 0 8px;\n  background: var(--dsw-alias-bg-module-platform);\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 9px;\n  padding: 8px 11px;\n  color: var(--dsw-alias-label-tertiary);\n  flex-shrink: 0;\n}\n.ma-search input {\n  min-width: 0;\n  flex: 1;\n  outline: 0 !important;\n  border: 0;\n  padding: 0;\n  background: none;\n  color: var(--dsw-alias-label-primary);\n  font: inherit;\n}\n.ma-search button {\n  padding: 0;\n  background: none;\n  border: 0;\n  color: inherit;\n  display: flex;\n  align-items: center;\n  cursor: pointer;\n}\n.ma-filters {\n  display: flex;\n  align-items: center;\n  gap: 9px;\n  flex-wrap: wrap;\n  padding: 15px 8px 17px;\n  flex-shrink: 0;\n}\n.ma-filters select {\n  max-width: 180px;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 18px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  font: inherit;\n  padding: 5px 12px;\n  cursor: pointer;\n}\n.ma-table-head,\n.ma-row {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) 125px 125px 140px 20px;\n  gap: 12px;\n  align-items: center;\n  padding: 10px 16px;\n}\n.ma-table-head {\n  font-size: 12px;\n  color: var(--dsw-alias-label-caption);\n  padding-top: 4px;\n  padding-bottom: 7px;\n}\n.ma-rows {\n  min-height: 0;\n  max-height: 340px;\n  overflow: auto;\n}\n.ma-row {\n  width: 100%;\n  background: none;\n  border: 0;\n  border-radius: 10px;\n  min-height: 56px;\n  font: inherit;\n  color: inherit;\n  cursor: pointer;\n  text-align: left;\n}\n.ma-row:hover,\n.ma-row:focus-visible {\n  background: var(--dsw-alias-interactive-bg-hover);\n}\n.ma-row[aria-pressed="true"] {\n  background: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 10%,\n    var(--dsw-alias-bg-base)\n  );\n}\n.ma-model {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  min-width: 0;\n}\n.ma-model strong {\n  font-weight: 500;\n  white-space: nowrap;\n  text-overflow: ellipsis;\n  overflow: hidden;\n  min-width: 0;\n}\n.ma-context,\n.ma-ratio {\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n.ma-input-limit { display: block; font-size: 10px; color: var(--dsw-alias-label-caption); }\n.ma-caps {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  flex-wrap: wrap;\n}\n.ma-caps > span {\n  font-size: 11px;\n  line-height: 17px;\n  padding: 1px 5px;\n  border-radius: 6px;\n  background: var(--dsw-alias-bg-module-platform);\n  color: var(--dsw-alias-label-secondary);\n}\n.ma-caps small {\n  color: var(--dsw-alias-label-caption);\n  font-size: 12px;\n}\n.ma-check {\n  color: var(--dsw-alias-state-business-primary);\n  display: flex;\n  justify-content: center;\n}\n.ma-foot {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 11px;\n  color: var(--dsw-alias-label-caption);\n  margin: 8px 12px 0;\n  padding: 13px 0 15px;\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n  flex-shrink: 0;\n}\n.ma-foot svg {\n  flex-shrink: 0;\n}\n.ma-error {\n  padding: 10px;\n  color: var(--dsw-alias-state-error-primary);\n  font-size: 12px;\n  overflow-wrap: anywhere;\n}\n.ma-error button {\n  margin-left: 12px;\n  color: inherit;\n  font: inherit;\n  background: none;\n  border: 0;\n  cursor: pointer;\n  text-decoration: underline;\n}\n.ma-empty {\n  text-align: center;\n  padding: 35px;\n  color: var(--dsw-alias-label-tertiary);\n}\n.ma-effort {\n  padding: 9px 16px;\n  display: flex;\n  align-items: center;\n  gap: 14px;\n  color: var(--dsw-alias-label-secondary);\n  font-size: 12px;\n}\n.ma-effort-note {\n  color: var(--dsw-alias-label-caption);\n  font-size: 11px;\n  margin: 0;\n}\n.ma-effort-choices { display: flex; flex-wrap: wrap; gap: 6px; }\n.ma-effort-choices button {\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 7px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-secondary);\n  padding: 4px 10px;\n  font: inherit;\n  cursor: pointer;\n}\n.ma-effort-choices button[aria-pressed="true"] {\n  color: var(--dsw-alias-state-business-primary);\n  border-color: var(--dsw-alias-state-business-primary);\n  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 8%, var(--dsw-alias-bg-base));\n}\n.ma-text-button {\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-state-business-primary);\n  font: inherit;\n  font-size: 12px;\n  cursor: pointer;\n}\n.ma-editor {\n  margin-top: 34px;\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n  padding-top: 20px;\n}\n.ma-editor summary {\n  cursor: pointer;\n  font-size: 14px;\n}\n.ma-editor h2 { font-size: 15px; font-weight: 500; margin: 0; }\n.ma-field.ma-provider-kind { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(130px, 180px) 90px; align-items: center; }\n.ma-provider-kind small { color: var(--dsw-alias-label-tertiary); }\n.ma-reference { margin-top: 16px; padding: 12px; border: 0.5px solid var(--dsw-alias-border-l2); border-radius: 7px; font-size: 12px; overflow-wrap: anywhere; }\n.ma-reference a { color: var(--dsw-alias-state-business-primary); }\n@media (max-width: 600px) { .ma-field.ma-provider-kind { grid-template-columns: 1fr 1fr; } .ma-provider-kind small { grid-column: 1/-1; } }\n.ma-editor > p {\n  color: var(--dsw-alias-label-tertiary);\n  line-height: 1.7;\n  font-size: 12px;\n}\n.ma-field {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  font-size: 12px;\n  color: var(--dsw-alias-label-secondary);\n  margin-top: 16px;\n}\n.ma-field input,\n.ma-field select {\n  box-sizing: border-box;\n  min-width: 0;\n  width: 100%;\n  height: 34px;\n  font: inherit;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 7px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  padding: 5px 9px;\n}\n.ma-fields {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 0 18px;\n}\n.ma-primary {\n  font: inherit;\n  font-size: 12px;\n  background: var(--dsw-alias-state-business-primary);\n  color: var(--dsw-alias-label-primary-foreground);\n  border: 0;\n  border-radius: 7px;\n  padding: 8px 13px;\n  margin-top: 23px;\n  cursor: pointer;\n}\n@media (max-width: 850px) {\n  .ma-table-head,\n  .ma-row {\n    grid-template-columns: minmax(0, 1fr) 120px 115px 105px 18px;\n    gap: 7px;\n  }\n  .ma-model {\n    gap: 7px;\n    flex-wrap: wrap;\n  }\n  .ma-badge {\n    max-width: 110px;\n  }\n  .ma-trigger .ma-badge {\n    max-width: 90px;\n  }\n}\n@media (max-width: 650px) {\n  .ma-table-head {\n    display: none;\n  }\n  .ma-row {\n    grid-template-columns: 1fr auto 18px;\n    grid-template-rows: auto auto;\n    gap: 8px;\n    padding: 12px;\n    min-height: 82px;\n  }\n  .ma-model {\n    grid-column: 1/3;\n  }\n  .ma-context {\n    grid-row: 2;\n    grid-column: 1;\n    font-size: 11px;\n    color: var(--dsw-alias-label-secondary);\n  }\n  .ma-ratio {\n    grid-row: 2;\n    grid-column: 1;\n    margin-left: 140px;\n    font-size: 11px;\n    color: var(--dsw-alias-label-secondary);\n  }\n  .ma-caps {\n    grid-row: 2;\n    grid-column: 2;\n  }\n  .ma-check {\n    grid-row: 1/3;\n    grid-column: 3;\n  }\n  .ma-caps > span {\n    font-size: 10px;\n    padding: 0 4px;\n  }\n  .ma-filters {\n    gap: 6px;\n    flex-wrap: nowrap;\n    overflow: auto;\n  }\n  .ma-filters select {\n    font-size: 11px;\n    max-width: 140px;\n    padding: 5px 7px;\n  }\n  .ma-page {\n    padding-inline: 20px;\n  }\n  .ma-setting-row {\n    padding: 20px 16px;\n  }\n  .ma-setting-row p {\n    font-size: 11px;\n  }\n  .ma-trigger {\n    max-width: 65cqw;\n    font-size: 12px;\n    gap: 5px;\n  }\n  .ma-trigger .ma-cap-icons {\n    display: none;\n  }\n  .ma-fields {\n    grid-template-columns: 1fr;\n  }\n  .ma-foot {\n    font-size: 10px;\n  }\n  .ma-badge {\n    max-width: 100px;\n  }\n}\n\n.ma-embedded-page .ma-page { height: auto; padding: 8px 0 24px; }\n.ma-embedded-page .ma-back { display: none; }\n.ma-embedded-page .ma-page h1 { margin-top: 0; font-size: 18px; }\n';
+
+// src/provenance.js
+var isOfficialProvider = (provider) => ["deepseek-account", "deepseek-official"].includes(provider);
+function providerKind(provider, entry, override) {
+  if (isOfficialProvider(provider)) return "official";
+  if (["official", "thirdParty", "custom"].includes(override)) return override;
+  return entry?.declared === true ? "custom" : entry?.declared === false ? "thirdParty" : void 0;
+}
+
+// src/transport.js
+async function loadCatalogRPC(rpc, force = false, signal, researchProvider = null, preferredModel = null) {
+  const directory = await rpc.call("/api", "modelAssistant/catalog", { args: { force } }, signal);
+  if (!directory.ok || !force || !researchProvider) return directory;
+  const unavailable = (code) => ({ ...directory, value: { ...directory.value, research: { code } } });
+  if (directory.value.version !== 2) return unavailable("HOST_RELOAD_REQUIRED");
+  try {
+    const result = await rpc.call("/api", "modelAssistant/refreshReferences", { args: { provider: researchProvider, preferredModel } }, signal);
+    return result.ok ? result : unavailable("RESEARCH_FAILED");
+  } catch {
+    return unavailable("RESEARCH_FAILED");
+  }
+}
 
 // src/client.jsx
 var NS = "local-model-assistant";
@@ -93,11 +115,31 @@ var dictionaries = {
     selectFailed: "\u9009\u6A21\u5931\u8D25\uFF0C\u672A\u6539\u53D8\u5F53\u524D\u6A21\u578B\u3002",
     defaultEffort: "\u9ED8\u8BA4",
     providerDefault: "default",
-    refresh: "\u5237\u65B0\u63A5\u53E3\u6A21\u578B\u5217\u8868",
+    refresh: "\u5237\u65B0\u6A21\u578B\u5217\u8868\u4E0E\u8D44\u6599",
+    kinds: "\u5168\u90E8\u6765\u6E90\u7C7B\u578B",
+    official: "\u5B98\u65B9",
+    thirdParty: "\u7B2C\u4E09\u65B9",
+    custom: "\u81EA\u5B9A\u4E49",
+    autoKind: "\u81EA\u52A8\u8BC6\u522B",
+    discovery: "\u6A21\u578B\u6765\u6E90\u4E0E\u8054\u7F51\u8D44\u6599",
+    discoveryHint: "\u5B98\u65B9\u6E20\u9053\u4F7F\u7528\u5BBF\u4E3B\u6A21\u578B\u76EE\u5F55\uFF1B\u7B2C\u4E09\u65B9\u548C\u81EA\u5B9A\u4E49\u6E20\u9053\u6309\u63A5\u53E3\u534F\u8BAE\u8BFB\u53D6\u3002\u53EF\u624B\u52A8\u4FEE\u6B63\u6765\u6E90\u5206\u7C7B\u3002",
+    researchModel: "\u8D44\u6599\u6574\u7406\u6A21\u578B",
+    researchOff: "\u5173\u95ED\u8054\u7F51\u8865\u5168\uFF08\u53EA\u5237\u65B0\u76EE\u5F55\uFF09",
+    researchHint: "\u9009\u62E9\u5DF2\u914D\u7F6E\u7684\u6A21\u578B\uFF0C\u914D\u5408\u5BBF\u4E3B\u8054\u7F51\u641C\u7D22\u63D0\u53D6\u8D44\u6599\uFF0C\u4F18\u5148\u53C2\u8003\u5B98\u7F51\u3002\u70B9\u51FB\u5237\u65B0\u65F6\u4EC5\u68C0\u7D22\u6240\u9009\u6E20\u9053\uFF08\u672A\u7B5B\u9009\u65F6\u4E3A\u5F53\u524D\u6A21\u578B\u6E20\u9053\uFF09\uFF0C\u6BCF\u6B21\u6700\u591A 6 \u4E2A\u6A21\u578B\uFF0C\u4F18\u5148\u5F53\u524D\u6A21\u578B\uFF0C\u5176\u4F59\u6309\u6700\u4E45\u672A\u66F4\u65B0\u987A\u5E8F\u5904\u7406\u3002\u641C\u7D22\u4E0E\u6A21\u578B\u8C03\u7528\u53EF\u80FD\u8BA1\u8D39\uFF1B\u6253\u5F00\u5217\u8868\u4E0D\u89E6\u53D1\u3002",
+    researchUnavailable: "\u8054\u7F51\u8865\u5168\u5931\u8D25\uFF0C\u5DF2\u6709\u8D44\u6599\u4ECD\u4FDD\u7559\u3002\u8BF7\u68C0\u67E5\u5BBF\u4E3B\u8054\u7F51\u641C\u7D22\u548C\u8D44\u6599\u6574\u7406\u6A21\u578B\u914D\u7F6E\u3002",
+    researchUpdated: "\u8054\u7F51\u8D44\u6599\u5DF2\u66F4\u65B0",
+    researchLimited: "\u672C\u6B21\u6700\u591A\u5904\u7406 6 \u4E2A\uFF0C\u7EE7\u7EED\u5237\u65B0\u53EF\u8865\u5145\u5176\u4ED6\u6A21\u578B\u3002",
+    sourceWeb: "\u8054\u7F51\u53C2\u8003\u8D44\u6599",
+    sourceOfficialWeb: "\u5B98\u7F51\u53C2\u8003\u8D44\u6599",
+    referenceTime: "\u68C0\u7D22\u65F6\u95F4",
+    knowledgeCutoff: "\u77E5\u8BC6\u622A\u6B62\u65E5\u671F",
+    sourceNative: "\u5BBF\u4E3B\u6A21\u578B\u76EE\u5F55",
+    searchOfficial: "\u641C\u7D22\u6A21\u578B\u2026",
+    hostReload: "\u6A21\u578B\u76EE\u5F55\u5DF2\u5237\u65B0\uFF1B\u8054\u7F51\u8D44\u6599\u9700\u8981\u5148\u5728\u63D2\u4EF6\u9875\u91CD\u65B0\u52A0\u8F7D\u6A21\u578B\u52A9\u624B\u3002",
     liveCatalog: "\u63A5\u53E3\u6A21\u578B\u5217\u8868",
     fallbackCatalog: "\u90E8\u5206\u6E20\u9053\u8BF7\u6C42\u5931\u8D25\uFF0C\u6B63\u5728\u4F7F\u7528\u7F13\u5B58\u6216\u672C\u5730\u53C2\u8003\u8D44\u6599\u3002",
     unlistedCurrent: "\u5F53\u524D\u6A21\u578B\u672A\u5728\u6700\u65B0\u63A5\u53E3\u5217\u8868\u4E2D\uFF0C\u5F53\u524D\u4F1A\u8BDD\u9009\u62E9\u4ECD\u4FDD\u7559\u3002",
-    sourceLive: "/v1/models",
+    sourceLive: "\u6A21\u578B\u76EE\u5F55\u63A5\u53E3",
     sourceStale: "\u63A5\u53E3\u7F13\u5B58\uFF08\u8BF7\u6C42\u5931\u8D25\uFF09",
     noEfforts: "\u5F53\u524D\u6A21\u578B\u672A\u914D\u7F6E\u63A8\u7406\u7B49\u7EA7\uFF0C\u53EF\u5728\u5BBF\u4E3B\u300C\u8BBE\u7F6E \u2192 \u6A21\u578B\u300D\u4E2D\u914D\u7F6E\u3002",
     effort: "\u63A8\u7406\u7B49\u7EA7",
@@ -164,11 +206,31 @@ var dictionaries = {
     selectFailed: "Selection failed; the active model was not changed.",
     defaultEffort: "Default",
     providerDefault: "default",
-    refresh: "Refresh endpoint models",
+    refresh: "Refresh models and references",
+    kinds: "All source types",
+    official: "Official",
+    thirdParty: "Third party",
+    custom: "Custom",
+    autoKind: "Automatic",
+    discovery: "Model sources and web references",
+    discoveryHint: "Official routes use the host directory; third-party and custom routes follow their API protocol. Override the source classification when needed.",
+    researchModel: "Reference extraction model",
+    researchOff: "Web references off (directory only)",
+    researchHint: "A configured model extracts specifications using host web search, preferring official docs. Refresh researches only the filtered channel, or the current model channel. Up to 6 models per refresh: current model first, then least recently updated. Search and model calls may incur charges. Opening the list never triggers research.",
+    researchUnavailable: "Web research failed; existing references are retained. Check host web search and the extraction model.",
+    researchUpdated: "Web references updated",
+    researchLimited: "Up to 6 models per refresh; refresh again to cover more models.",
+    sourceWeb: "Web reference",
+    sourceOfficialWeb: "Official documentation reference",
+    referenceTime: "Retrieved",
+    knowledgeCutoff: "Knowledge cutoff",
+    sourceNative: "Host model directory",
+    searchOfficial: "Search models\u2026",
+    hostReload: "Directory refreshed. Reload Model Assistant in Plugins before researching web references.",
     liveCatalog: "Endpoint model catalog",
     fallbackCatalog: "Some endpoints failed. Cached or local reference data is shown.",
     unlistedCurrent: "The current model is absent from the latest endpoint list. The session selection is retained.",
-    sourceLive: "/v1/models",
+    sourceLive: "Model directory API",
     sourceStale: "Endpoint cache (request failed)",
     noEfforts: "No reasoning levels are configured for this model. Configure them in Settings \u2192 Models.",
     effort: "Reasoning effort",
@@ -245,8 +307,11 @@ function metadataOf(group, model, prefs, hostDocument) {
       break;
     }
   }
-  const manual = prefs?.metadata?.[keyOf(group.id, model.id)] || {};
+  const manual = Object.fromEntries(Object.entries(prefs?.metadata?.[keyOf(group.id, model.id)] || {}).filter(([, value]) => value !== void 0));
+  const reference = model.reference;
+  const web = reference?.metadata || {};
   const info = {
+    ...web,
     ...configured?.contextWindow === void 0 ? {} : { contextWindow: configured.contextWindow },
     ...configured?.maxTokens === void 0 ? {} : { maxTokens: configured.maxTokens },
     ...input === void 0 ? configured ? { text: true } : {} : {
@@ -259,14 +324,17 @@ function metadataOf(group, model, prefs, hostDocument) {
   };
   const slash = model.id.indexOf("/");
   const prefix = slash > 0 ? model.id.slice(0, slash).trim() : void 0;
-  info.supplier = group.source === "live" || group.source === "stale" ? prefix : typeof info.supplier === "string" && info.supplier.trim() ? info.supplier.trim() : prefix;
+  info.supplier = group.kind === "official" ? "DeepSeek" : prefix || (typeof info.supplier === "string" ? info.supplier.trim() : void 0);
+  const webSource = reference?.sources?.every((source) => source.official) ? "sourceOfficialWeb" : "sourceWeb";
+  info.reference = reference;
   info.source = group.source === "live" ? "sourceLive" : group.source === "stale" ? "sourceStale" : Object.keys(manual).length ? "sourceManual" : configured || model.reasoning || prefix ? "sourceHost" : "sourceUnknown";
-  info.contextSource = model.metadata?.contextWindow !== void 0 ? info.source : manual.contextWindow !== void 0 ? "sourceManual" : "sourceHost";
-  info.outputSource = model.metadata?.maxTokens !== void 0 ? info.source : manual.maxTokens !== void 0 ? "sourceManual" : "sourceHost";
+  info.contextSource = model.metadata?.contextWindow !== void 0 ? group.source === "local" ? "sourceNative" : info.source : manual.contextWindow !== void 0 ? "sourceManual" : configured?.contextWindow !== void 0 ? "sourceHost" : web.contextWindow !== void 0 ? webSource : "sourceUnknown";
+  info.outputSource = model.metadata?.maxTokens !== void 0 ? group.source === "local" ? "sourceNative" : info.source : manual.maxTokens !== void 0 ? "sourceManual" : configured?.maxTokens !== void 0 ? "sourceHost" : web.maxTokens !== void 0 ? webSource : "sourceUnknown";
   return info;
 }
 function RouteBadges({ group, info, t }) {
-  return /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-badges" }, /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-badge ma-channel", title: group.id }, group.name), /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-badge" }, info.supplier || t("unknownSupplier")));
+  if (group.kind === "official") return /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-badges" }, /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-badge ma-official", title: `${t("official")} \xB7 ${group.name}` }, t("official")));
+  return /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-badges" }, /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-badge ma-channel", title: group.id }, group.name, group.kind ? ` \xB7 ${t(group.kind)}` : ""), /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-badge" }, info.supplier || t("unknownSupplier")));
 }
 function Capabilities({ info, t, icons = false }) {
   const keys = ["text", "reasoning", "tools", "vision", "streaming"];
@@ -324,6 +392,7 @@ function MetadataEditor({ form, usePreferences, loadCatalog, t }) {
     }))
   );
   const chosen = routeKey || routes[0]?.key || "";
+  const reference = routes.find((route) => route.key === chosen)?.model.reference;
   (0, import_react.useEffect)(() => {
     setDraft(settings.value?.metadata?.[chosen] || {});
   }, [chosen, settings.value?.metadata]);
@@ -367,14 +436,57 @@ function MetadataEditor({ form, usePreferences, loadCatalog, t }) {
       setBusy(false);
     }
   }
-  return /* @__PURE__ */ import_react.default.createElement("details", { className: "ma-editor" }, /* @__PURE__ */ import_react.default.createElement("summary", null, t("metadata")), /* @__PURE__ */ import_react.default.createElement("p", null, t("metadataHint")), !catalog ? /* @__PURE__ */ import_react.default.createElement("p", { role: "status" }, message || t("loading")) : !routes.length ? /* @__PURE__ */ import_react.default.createElement("p", null, t("metadataEmpty")) : /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement("label", { className: "ma-field" }, t("chooseRoute"), /* @__PURE__ */ import_react.default.createElement(
+  return /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement("section", { className: "ma-editor", "aria-label": t("discovery") }, /* @__PURE__ */ import_react.default.createElement("h2", null, t("discovery")), /* @__PURE__ */ import_react.default.createElement("p", null, t("discoveryHint")), (catalog?.groups || []).map((group) => /* @__PURE__ */ import_react.default.createElement("label", { className: "ma-field ma-provider-kind", key: group.id }, /* @__PURE__ */ import_react.default.createElement("span", null, group.name), /* @__PURE__ */ import_react.default.createElement(
+    "select",
+    {
+      disabled: busy || !settings.writable,
+      value: settings.value?.providerKinds?.[group.id] || "",
+      onChange: async (e) => {
+        const value = e.target.value;
+        setBusy(true);
+        try {
+          const ok = await form.mutate([{ op: value ? "set" : "unset", path: ["providerKinds", group.id], ...value ? { value } : {} }]);
+          if (!ok) throw new Error("save failed");
+          const result = await loadCatalog();
+          if (result.ok) setCatalog(result.value);
+        } catch {
+          setMessage(t("saveFailed"));
+        } finally {
+          setBusy(false);
+        }
+      }
+    },
+    /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("autoKind")),
+    ["official", "thirdParty", "custom"].map((kind) => /* @__PURE__ */ import_react.default.createElement("option", { key: kind, value: kind }, t(kind)))
+  ), /* @__PURE__ */ import_react.default.createElement("small", null, t(group.kind || "sourceUnknown")))), /* @__PURE__ */ import_react.default.createElement("label", { className: "ma-field" }, t("researchModel"), /* @__PURE__ */ import_react.default.createElement(
+    "select",
+    {
+      "aria-label": t("researchModel"),
+      disabled: busy || !settings.writable,
+      value: settings.value?.researchModel || "",
+      onChange: async (e) => {
+        const value = e.target.value;
+        setBusy(true);
+        try {
+          if (!await form.set("researchModel", value)) setMessage(t("saveFailed"));
+        } catch {
+          setMessage(t("saveFailed"));
+        } finally {
+          setBusy(false);
+        }
+      }
+    },
+    /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("researchOff")),
+    settings.value?.researchModel && !routes.some((route) => route.key === settings.value.researchModel) ? /* @__PURE__ */ import_react.default.createElement("option", { value: settings.value.researchModel }, t("unavailable")) : null,
+    routes.filter(({ model }) => model.researchEligible !== false).map(({ key, group, model }) => /* @__PURE__ */ import_react.default.createElement("option", { key, value: key }, group.name, " / ", model.name))
+  )), /* @__PURE__ */ import_react.default.createElement("p", null, t("researchHint")), message ? /* @__PURE__ */ import_react.default.createElement("p", { role: "status" }, message) : null), /* @__PURE__ */ import_react.default.createElement("details", { className: "ma-editor" }, /* @__PURE__ */ import_react.default.createElement("summary", null, t("metadata")), /* @__PURE__ */ import_react.default.createElement("p", null, t("metadataHint")), !catalog ? /* @__PURE__ */ import_react.default.createElement("p", { role: "status" }, message || t("loading")) : !routes.length ? /* @__PURE__ */ import_react.default.createElement("p", null, t("metadataEmpty")) : /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement("label", { className: "ma-field" }, t("chooseRoute"), /* @__PURE__ */ import_react.default.createElement(
     "select",
     {
       value: chosen,
       onChange: (e) => setRouteKey(e.target.value)
     },
     routes.map(({ key, group, model }) => /* @__PURE__ */ import_react.default.createElement("option", { key, value: key }, group.name, " / ", model.name, " \xB7 ", model.id))
-  )), /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-fields" }, [
+  )), reference ? /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-reference" }, /* @__PURE__ */ import_react.default.createElement("p", null, t("sourceWeb"), " \xB7 ", t("referenceTime"), ": ", new Date(reference.fetchedAt).toLocaleString()), reference.sources.map((source) => /* @__PURE__ */ import_react.default.createElement("p", { key: source.field }, t(source.field === "contextWindow" ? "contextTokens" : source.field), ": ", String(reference.metadata[source.field]), " \xB7 ", /* @__PURE__ */ import_react.default.createElement("a", { href: /^https:\/\//i.test(source.url) ? source.url : void 0, target: "_blank", rel: "noreferrer" }, source.title)))) : null, /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-fields" }, [
     "supplier",
     "contextWindow",
     "maxTokens",
@@ -410,7 +522,7 @@ function MetadataEditor({ form, usePreferences, loadCatalog, t }) {
       onClick: save
     },
     t("saveMetadata")
-  ), message ? /* @__PURE__ */ import_react.default.createElement("p", { role: "status" }, message) : null));
+  ), message ? /* @__PURE__ */ import_react.default.createElement("p", { role: "status" }, message) : null)));
 }
 function SettingsPage({ usePreferences, form, back, loadCatalog, t }) {
   const state = usePreferences((s) => s);
@@ -465,15 +577,21 @@ function ModelSeat({
   t
 }) {
   const nativeState = useDirectory((s) => s), preferences = usePreferences((s) => s.value), hostSettings = useHostSettings((s) => s);
-  const [open, setOpen] = (0, import_react.useState)(false), [query, setQuery] = (0, import_react.useState)(""), [channel, setChannel] = (0, import_react.useState)(""), [supplier, setSupplier] = (0, import_react.useState)(""), [capability, setCapability] = (0, import_react.useState)(""), [minContext, setMinContext] = (0, import_react.useState)(""), [error, setError] = (0, import_react.useState)(""), [position, setPosition] = (0, import_react.useState)(null), [active, setActive] = (0, import_react.useState)(-1);
+  const [open, setOpen] = (0, import_react.useState)(false), [query, setQuery] = (0, import_react.useState)(""), [channel, setChannel] = (0, import_react.useState)(""), [kind, setKind] = (0, import_react.useState)(""), [supplier, setSupplier] = (0, import_react.useState)(""), [capability, setCapability] = (0, import_react.useState)(""), [minContext, setMinContext] = (0, import_react.useState)(""), [error, setError] = (0, import_react.useState)(""), [position, setPosition] = (0, import_react.useState)(null), [active, setActive] = (0, import_react.useState)(-1);
   const [remoteCatalog, setRemoteCatalog] = (0, import_react.useState)(null);
   const [refreshing, setRefreshing] = (0, import_react.useState)(false);
   const [preparing, setPreparing] = (0, import_react.useState)(false);
   const requestSeq = (0, import_react.useRef)(0);
-  const state = { ...nativeState, groups: remoteCatalog?.groups ?? nativeState.groups };
+  const groups = (0, import_react.useMemo)(() => (remoteCatalog?.groups ?? nativeState.groups).map((group) => ({
+    ...group,
+    kind: providerKind(group.id, void 0, preferences?.providerKinds?.[group.id]) ?? group.kind
+  })), [remoteCatalog, nativeState.groups, preferences?.providerKinds]);
+  const state = { ...nativeState, groups, ...remoteCatalog ? { error: null, failures: [] } : {} };
+  const hasChannels = kind !== "official" && state.groups.some((group) => group.kind !== "official");
   const trigger = (0, import_react.useRef)(null), menu = (0, import_react.useRef)(null), search = (0, import_react.useRef)(null), rows = (0, import_react.useRef)([]);
   (0, import_react.useEffect)(() => {
-    if (available) load().catch(() => setError(t("loadFailed")));
+    if (available) load().catch(() => {
+    });
   }, [available, load, t]);
   (0, import_react.useEffect)(() => {
     if (!available) return;
@@ -481,8 +599,10 @@ function ModelSeat({
     const abort = new AbortController();
     loadRemote(false, abort.signal).then((result) => {
       if (!abort.signal.aborted && requestSeq.current === seq) {
-        if (result.ok) setRemoteCatalog(result.value);
-        else setError(t("loadFailed"));
+        if (result.ok) {
+          setRemoteCatalog(result.value);
+          setError("");
+        } else setError(t("loadFailed"));
       }
     }).catch(() => {
       if (!abort.signal.aborted && requestSeq.current === seq) setError(t("loadFailed"));
@@ -496,7 +616,9 @@ function ModelSeat({
     const seq = ++requestSeq.current;
     setRefreshing(true);
     try {
-      const result = await loadRemote(force);
+      const candidates = state.groups.filter((group) => !kind || group.kind === kind);
+      const researchProvider = force && preferences?.researchModel ? channel || candidates.find((group) => group.id === state.current?.provider)?.id || candidates[0]?.id : null;
+      const result = await loadRemote(force, void 0, researchProvider, state.current?.model);
       if (requestSeq.current !== seq) return;
       if (result.ok) {
         setRemoteCatalog(result.value);
@@ -565,11 +687,11 @@ function ModelSeat({
   const effectiveEffort = reasoning?.efforts.some((e) => e.id === state.current?.reasoningEffort) ? state.current.reasoningEffort : reasoning?.defaultEffort;
   const q = query.trim().toLowerCase();
   const filtered = all.filter(
-    (row) => (!q || `${row.group.name} ${row.group.id} ${row.model.name} ${row.model.id} ${row.info.supplier || ""}`.toLowerCase().includes(q)) && (!channel || row.group.id === channel) && (!supplier || (row.info.supplier || "__unknown") === supplier) && (!capability || row.info[capability] === true) && (!minContext || knownNumber(row.info.contextWindow) && row.info.contextWindow >= Number(minContext))
+    (row) => (!q || `${row.group.name} ${row.group.id} ${row.model.name} ${row.model.id} ${row.info.supplier || ""}`.toLowerCase().includes(q)) && (!channel || row.group.id === channel) && (!kind || row.group.kind === kind) && (!supplier || (row.info.supplier || "__unknown") === supplier) && (!capability || row.info[capability] === true) && (!minContext || knownNumber(row.info.contextWindow) && row.info.contextWindow >= Number(minContext))
   );
   (0, import_react.useEffect)(() => {
     setActive(-1);
-  }, [query, channel, supplier, capability, minContext]);
+  }, [query, channel, kind, supplier, capability, minContext]);
   if (!available) return null;
   const busy = state.pending !== null || preparing;
   function close() {
@@ -619,6 +741,7 @@ function ModelSeat({
   const reset = () => {
     setQuery("");
     setChannel("");
+    setKind("");
     setSupplier("");
     setCapability("");
     setMinContext("");
@@ -638,8 +761,8 @@ function ModelSeat({
       "input",
       {
         ref: search,
-        "aria-label": t("search"),
-        placeholder: t("search"),
+        "aria-label": t(hasChannels ? "search" : "searchOfficial"),
+        placeholder: t(hasChannels ? "search" : "searchOfficial"),
         value: query,
         onChange: (e) => setQuery(e.target.value)
       }
@@ -654,7 +777,11 @@ function ModelSeat({
       },
       /* @__PURE__ */ import_react.default.createElement(Icon, { kind: "close", size: 15 })
     ) : null, /* @__PURE__ */ import_react.default.createElement("button", { "aria-label": t("close"), onClick: close }, /* @__PURE__ */ import_react.default.createElement(Icon, { kind: "close", size: 16 }))),
-    /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-filters" }, /* @__PURE__ */ import_react.default.createElement("button", { className: "ma-text-button", disabled: refreshing || busy, onClick: () => refreshRemote(true) }, refreshing ? t("loading") : t("refresh")), /* @__PURE__ */ import_react.default.createElement(
+    /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-filters" }, /* @__PURE__ */ import_react.default.createElement("button", { className: "ma-text-button", disabled: refreshing || busy, onClick: () => refreshRemote(true) }, refreshing ? t("loading") : t("refresh")), /* @__PURE__ */ import_react.default.createElement("select", { "aria-label": t("kinds"), value: kind, onChange: (e) => {
+      setKind(e.target.value);
+      setChannel("");
+      setSupplier("");
+    } }, /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("kinds")), ["official", "thirdParty", "custom"].map((value) => /* @__PURE__ */ import_react.default.createElement("option", { key: value, value }, t(value)))), hasChannels ? /* @__PURE__ */ import_react.default.createElement(
       "select",
       {
         "aria-label": t("channels"),
@@ -662,8 +789,8 @@ function ModelSeat({
         onChange: (e) => setChannel(e.target.value)
       },
       /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("channels")),
-      state.groups.map((group) => /* @__PURE__ */ import_react.default.createElement("option", { key: group.id, value: group.id }, group.name))
-    ), /* @__PURE__ */ import_react.default.createElement(
+      state.groups.filter((group) => group.kind !== "official").map((group) => /* @__PURE__ */ import_react.default.createElement("option", { key: group.id, value: group.id }, group.name))
+    ) : null, hasChannels ? /* @__PURE__ */ import_react.default.createElement(
       "select",
       {
         "aria-label": t("suppliers"),
@@ -671,10 +798,10 @@ function ModelSeat({
         onChange: (e) => setSupplier(e.target.value)
       },
       /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("suppliers")),
-      [...new Set(all.map((row) => row.info.supplier || "__unknown"))].map(
+      [...new Set(all.filter((row) => row.group.kind !== "official").map((row) => row.info.supplier || "__unknown"))].map(
         (value) => /* @__PURE__ */ import_react.default.createElement("option", { key: value, value }, value === "__unknown" ? t("unknownSupplier") : value)
       )
-    ), /* @__PURE__ */ import_react.default.createElement(
+    ) : null, /* @__PURE__ */ import_react.default.createElement(
       "select",
       {
         "aria-label": t("capability"),
@@ -692,7 +819,7 @@ function ModelSeat({
       },
       /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("context")),
       [64e3, 128e3, 1e6].map((value) => /* @__PURE__ */ import_react.default.createElement("option", { key: value, value }, "\u2265 ", formatContext(value)))
-    ), query || channel || supplier || capability || minContext ? /* @__PURE__ */ import_react.default.createElement("button", { className: "ma-text-button", onClick: reset }, t("reset")) : null),
+    ), query || channel || kind || supplier || capability || minContext ? /* @__PURE__ */ import_react.default.createElement("button", { className: "ma-text-button", onClick: reset }, t("reset")) : null),
     /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-table-head" }, /* @__PURE__ */ import_react.default.createElement("span", null, t("route")), /* @__PURE__ */ import_react.default.createElement("span", null, t("capacity")), /* @__PURE__ */ import_react.default.createElement("span", null, t("ratio")), /* @__PURE__ */ import_react.default.createElement("span", null, t("capability")), /* @__PURE__ */ import_react.default.createElement("span", null)),
     /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-rows" }, filtered.map((row, i) => {
       const selected = row.group.id === state.current?.provider && row.model.id === state.current.model;
@@ -710,7 +837,9 @@ function ModelSeat({
           onClick: () => choose(row),
           "aria-label": `${row.model.name}, ${row.group.name}, ${row.info.supplier || t("unknownSupplier")}, ${row.model.id}`
         },
-        /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-model" }, /* @__PURE__ */ import_react.default.createElement("strong", { title: row.model.id }, row.model.name), /* @__PURE__ */ import_react.default.createElement(RouteBadges, { group: row.group, info: row.info, t })),
+        /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-model", title: row.info.reference ? `${t("sourceWeb")} \xB7 ${t("referenceTime")}: ${new Date(row.info.reference.fetchedAt).toLocaleString()}
+${row.info.reference.sources.map((source) => `${t(source.field === "contextWindow" ? "contextTokens" : source.field)}: ${source.url}`).join("\n")}${row.info.knowledgeCutoff ? `
+${t("knowledgeCutoff")}: ${row.info.knowledgeCutoff}` : ""}` : void 0 }, /* @__PURE__ */ import_react.default.createElement("strong", { title: row.model.id }, row.model.name), /* @__PURE__ */ import_react.default.createElement(RouteBadges, { group: row.group, info: row.info, t })),
         /* @__PURE__ */ import_react.default.createElement(
           "span",
           {
@@ -728,7 +857,7 @@ function ModelSeat({
         /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-check" }, selected ? /* @__PURE__ */ import_react.default.createElement(Icon, { kind: "check", size: 17 }) : null)
       );
     }), !filtered.length ? /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-empty", role: "status" }, state.status === "loading" ? t("loading") : t("empty")) : null),
-    error || state.error || state.failures.length > 0 ? /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-error", role: "alert" }, error || state.error || t("loadFailed"), /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => load().catch(() => setError(t("loadFailed"))) }, t("retry"))) : null,
+    error || state.error || state.failures.length > 0 ? /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-error", role: "alert" }, error || state.error || t("loadFailed"), /* @__PURE__ */ import_react.default.createElement("button", { disabled: refreshing, onClick: () => refreshRemote(true) }, t("retry"))) : null,
     current ? /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-effort" }, /* @__PURE__ */ import_react.default.createElement("span", null, t("effort")), /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-effort-choices", role: "group", "aria-label": t("effort") }, [
       ...reasoning?.defaultEffort === void 0 ? [{ id: null, name: t("providerDefault") }] : [],
       ...reasoning?.efforts || []
@@ -745,6 +874,7 @@ function ModelSeat({
       item.name
     )))) : null,
     remoteCatalog?.failures.length ? /* @__PURE__ */ import_react.default.createElement("p", { className: "ma-effort ma-effort-note", role: "status" }, t("fallbackCatalog"), " ", remoteCatalog.failures.map((f) => `${f.id}: ${f.code}`).join(" \xB7 ")) : null,
+    remoteCatalog?.research ? /* @__PURE__ */ import_react.default.createElement("p", { className: "ma-effort ma-effort-note", role: "status" }, remoteCatalog.research.code === "HOST_RELOAD_REQUIRED" ? t("hostReload") : remoteCatalog.research.code ? `${t("researchUnavailable")} (${remoteCatalog.research.code})` : !remoteCatalog.research.disabled ? `${t("researchUpdated")}: ${remoteCatalog.research.updated} / ${remoteCatalog.research.attempted} \xB7 ${remoteCatalog.research.total}${remoteCatalog.research.limited ? ` \xB7 ${t("researchLimited")}` : ""}` : "") : null,
     current?.unlisted ? /* @__PURE__ */ import_react.default.createElement("p", { className: "ma-effort ma-effort-note", role: "status" }, t("unlistedCurrent")) : null,
     /* @__PURE__ */ import_react.default.createElement("p", { className: "ma-foot" }, /* @__PURE__ */ import_react.default.createElement(Icon, { kind: "info", size: 14 }), t("foot"))
   );
@@ -761,7 +891,7 @@ function ModelSeat({
         if (!open) {
           reset();
           setPosition(null);
-          refreshRemote(false);
+          if (!refreshing) refreshRemote(false);
         }
         setOpen((value) => !value);
       }
@@ -805,7 +935,7 @@ function apply(ctx) {
     return () => style.remove();
   }, "model-assistant: styles");
   const t = ctx.locale.bind(NS), form = ctx.configForms.get(NS), mirror = ctx.configForms.describe();
-  const loadRemote = (force = false, signal) => ctx.connection.rpc.call("/api", "modelAssistant/catalog", { args: { force } }, signal);
+  const loadRemote = (force = false, signal, researchProvider = null, preferredModel = null) => loadCatalogRPC(ctx.connection.rpc, force, signal, researchProvider, preferredModel);
   const loadCatalog = () => loadRemote(false);
   ctx.slots.inject(
     "main",

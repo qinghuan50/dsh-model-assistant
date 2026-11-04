@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import { ModelResearch, routeKey } from "./research.js";
+import { providerKind, isOfficialProvider } from "./provenance.js";
+export { providerKind } from "./provenance.js";
 
 const LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
 const text = (...values) => values.find((v) => typeof v === "string" && v.trim())?.trim();
@@ -33,7 +36,7 @@ export function parseModels(body) {
     const has = (name) => Array.isArray(caps) && caps.includes(name) ? true : undefined;
     const input = [raw.inputModalities, raw.input_modalities, raw.input, raw.modalities?.input, raw.architecture?.input_modalities]
       .find((v) => Array.isArray(v) && v.length > 0);
-    const levels = raw.reasoning_efforts ?? raw.reasoningEfforts ?? raw.supported_reasoning_efforts ?? raw.reasoning?.efforts ?? raw.reasoning?.levels ?? caps?.reasoning_efforts;
+    const levels = raw.reasoning_efforts ?? raw.reasoningEfforts ?? raw.supported_reasoning_efforts ?? raw.reasoning?.efforts ?? raw.reasoning?.levels ?? caps?.reasoning_efforts ?? raw.effort?.supported_levels;
     const wires = {};
     const efforts = [];
     for (const level of LEVELS) {
@@ -45,7 +48,7 @@ export function parseModels(body) {
       }
     }
     const hasEfforts = raw.reasoning !== false && caps?.reasoning !== false && efforts.some((v) => v.id !== "off");
-    const defaultEffort = text(raw.default_reasoning_effort, raw.reasoning?.defaultEffort, raw.reasoning?.default_effort);
+    const defaultEffort = text(raw.default_reasoning_effort, raw.reasoning?.defaultEffort, raw.reasoning?.default_effort, raw.effort?.default_level);
     const metadata = present({
       contextWindow: capacity(raw.contextWindow, raw.context_window, raw.context_length, raw.limit?.context, raw.limits?.context),
       maxInputTokens: capacity(raw.maxInputTokens, raw.max_input_tokens, raw.limit?.input, raw.limits?.input),
@@ -73,6 +76,7 @@ export class ModelDiscovery {
     this.cache = new Map();
     this.pending = new Map();
     this.lifetime = new AbortController();
+    this.research = new ModelResearch(ctx, this.lifetime.signal);
   }
   dispose() { this.lifetime.abort(); this.cache.clear(); this.pending.clear(); }
   profile(entry) {
@@ -82,7 +86,11 @@ export class ModelDiscovery {
     return { value, revision: section?.revision, ns: entry.settingsNs };
   }
   async request(entry, force) {
+    // Account authentication, native protocols and official listing policy belong to their adapters.
+    const prefs = this.research.preferences()?.value;
+    if (isOfficialProvider(entry.provider) || providerKind(entry.provider, entry, prefs?.providerKinds?.[entry.provider]) === "official") return null;
     const profile = this.profile(entry), value = profile.value;
+    if (value?.api && !["openai-completions", "openai-responses"].includes(value.api)) return null;
     const baseURL = value?.baseURL ?? entry.baseURL;
     if (!baseURL) return null;
     const url = modelsUrl(baseURL);
@@ -128,32 +136,53 @@ export class ModelDiscovery {
       throw error;
     } finally { this.pending.delete(signature); }
   }
-  async catalog(force = false) {
-    if (typeof force !== "boolean") throw new Error("INVALID_REQUEST");
+  /** Read directories without inference costs; a UI refresh may research one explicitly named channel. */
+  async catalog(force = false, researchProvider = null, preferredModel = null) {
+    if (typeof force !== "boolean" || !(researchProvider == null || typeof researchProvider === "string") || !(preferredModel == null || typeof preferredModel === "string")) throw new Error("INVALID_REQUEST");
     const directory = this.ctx.llm.listConfigurableProviders();
+    const prefs = this.research.preferences()?.value;
     const failures = [];
     const groups = await Promise.all(this.ctx.llm.listProviders().map(async (provider) => {
       let local = [];
       try {
         local = await this.ctx.llm.listModels(provider.id);
         local = await Promise.all(local.map(async (m) => {
-          const info = await this.ctx.llm.resolveModelInfo(provider.id, m.id);
-          return { id: m.id, name: m.name, ...(info.reasoning ? { reasoning: info.reasoning } : {}) };
+          const info = await this.ctx.llm.resolveModelInfo(provider.id, m.id).catch(() => m);
+          const input = info.inputModalities;
+          return { id: m.id, name: m.name, researchEligible: true, ...(info.reasoning ? { reasoning: info.reasoning } : {}), metadata: present({
+            contextWindow: capacity(info.context?.contextWindow),
+            text: input?.length ? input.includes("text") : undefined,
+            vision: input?.length ? input.includes("image") : undefined,
+            reasoning: info.reasoning ? true : undefined,
+          }) };
         }));
       } catch { /* A working endpoint can still supply the directory when the local catalog is invalid. */ }
       const entry = directory.find((e) => e.provider === provider.id);
+      const kind = providerKind(provider.id, entry, prefs?.providerKinds?.[provider.id]);
       try {
         const live = entry ? await this.request(entry, force) : null;
         if (live) {
           if (live.stale) failures.push({ id: provider.id, code: live.code });
           const names = new Map(local.map((m) => [m.id, m.name]));
-          return { id: provider.id, name: provider.name, source: live.stale ? "stale" : "live", fetchedAt: live.fetchedAt, cached: live.cached,
-            models: live.models.map(({ wires, input, ...m }) => ({ ...m, name: m.name || names.get(m.id) || m.id })) };
+          return { id: provider.id, name: provider.name, kind, source: live.stale ? "stale" : "live", fetchedAt: live.fetchedAt, cached: live.cached,
+            models: live.models.map(({ wires, input, ...m }) => ({ ...m, name: m.name || names.get(m.id) || m.id, researchEligible: names.has(m.id) })) };
         }
       } catch (error) { failures.push({ id: provider.id, code: safeError(error) }); }
-      return { id: provider.id, name: provider.name, source: "local", models: local };
+      return { id: provider.id, name: provider.name, kind, source: "local", models: local };
     }));
-    return { groups, failures };
+    let research;
+    if (researchProvider) {
+      const group = groups.find((g) => g.id === researchProvider);
+      if (!group) throw new Error("INVALID_REQUEST");
+      try { research = await this.research.refresh(group, preferredModel); }
+      catch (error) { research = { code: researchError(error) }; }
+    }
+    const references = this.research.preferences()?.value?.references;
+    for (const group of groups) for (const model of group.models) {
+      const reference = references?.[routeKey(group.id, model.id)];
+      if (reference) model.reference = reference;
+    }
+    return { version: 2, groups, failures, ...(research ? { research } : {}) };
   }
   /** Admit only a model advertised by this configured endpoint; preserve all existing model settings. */
   async prepare(provider, modelId, effort) {
@@ -191,4 +220,8 @@ export class ModelDiscovery {
 function safeError(error) {
   return /^(HTTP_\d{3}|INVALID_ENDPOINT|INVALID_MODEL_LIST|MISSING_CREDENTIAL|INVALID_CREDENTIAL_REFERENCE|REPLY_TOO_LARGE)$/.test(error?.message)
     ? error.message : "DISCOVERY_FAILED";
+}
+function researchError(error) {
+  return /^(WEB_UNAVAILABLE|INVALID_RESEARCH_MODEL|NO_RESEARCH_SOURCES|INVALID_RESEARCH_REPLY|RESEARCH_MODEL_FAILED|NO_VERIFIED_FACTS)$/.test(error?.message)
+    ? error.message : "RESEARCH_FAILED";
 }

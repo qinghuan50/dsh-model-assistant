@@ -7,6 +7,8 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import css from "./styles.css";
+import { providerKind } from "./provenance.js";
+import { loadCatalogRPC } from "./transport.js";
 
 const NS = "local-model-assistant";
 const PANEL = "local-model-assistant";
@@ -66,11 +68,19 @@ const dictionaries = {
     selectFailed: "选模失败，未改变当前模型。",
     defaultEffort: "默认",
     providerDefault: "default",
-    refresh: "刷新接口模型列表",
+    refresh: "刷新模型列表与资料",
+    kinds: "全部来源类型", official: "官方", thirdParty: "第三方", custom: "自定义", autoKind: "自动识别",
+    discovery: "模型来源与联网资料", discoveryHint: "官方渠道使用宿主模型目录；第三方和自定义渠道按接口协议读取。可手动修正来源分类。",
+    researchModel: "资料整理模型", researchOff: "关闭联网补全（只刷新目录）",
+    researchHint: "选择已配置的模型，配合宿主联网搜索提取资料，优先参考官网。点击刷新时仅检索所选渠道（未筛选时为当前模型渠道），每次最多 6 个模型，优先当前模型，其余按最久未更新顺序处理。搜索与模型调用可能计费；打开列表不触发。",
+    researchUnavailable: "联网补全失败，已有资料仍保留。请检查宿主联网搜索和资料整理模型配置。",
+    researchUpdated: "联网资料已更新", researchLimited: "本次最多处理 6 个，继续刷新可补充其他模型。",
+    sourceWeb: "联网参考资料", sourceOfficialWeb: "官网参考资料", referenceTime: "检索时间", knowledgeCutoff: "知识截止日期",
+    sourceNative: "宿主模型目录", searchOfficial: "搜索模型…", hostReload: "模型目录已刷新；联网资料需要先在插件页重新加载模型助手。",
     liveCatalog: "接口模型列表",
     fallbackCatalog: "部分渠道请求失败，正在使用缓存或本地参考资料。",
     unlistedCurrent: "当前模型未在最新接口列表中，当前会话选择仍保留。",
-    sourceLive: "/v1/models",
+    sourceLive: "模型目录接口",
     sourceStale: "接口缓存（请求失败）",
     noEfforts: "当前模型未配置推理等级，可在宿主「设置 → 模型」中配置。",
     effort: "推理等级",
@@ -140,11 +150,19 @@ const dictionaries = {
     selectFailed: "Selection failed; the active model was not changed.",
     defaultEffort: "Default",
     providerDefault: "default",
-    refresh: "Refresh endpoint models",
+    refresh: "Refresh models and references",
+    kinds: "All source types", official: "Official", thirdParty: "Third party", custom: "Custom", autoKind: "Automatic",
+    discovery: "Model sources and web references", discoveryHint: "Official routes use the host directory; third-party and custom routes follow their API protocol. Override the source classification when needed.",
+    researchModel: "Reference extraction model", researchOff: "Web references off (directory only)",
+    researchHint: "A configured model extracts specifications using host web search, preferring official docs. Refresh researches only the filtered channel, or the current model channel. Up to 6 models per refresh: current model first, then least recently updated. Search and model calls may incur charges. Opening the list never triggers research.",
+    researchUnavailable: "Web research failed; existing references are retained. Check host web search and the extraction model.",
+    researchUpdated: "Web references updated", researchLimited: "Up to 6 models per refresh; refresh again to cover more models.",
+    sourceWeb: "Web reference", sourceOfficialWeb: "Official documentation reference", referenceTime: "Retrieved", knowledgeCutoff: "Knowledge cutoff",
+    sourceNative: "Host model directory", searchOfficial: "Search models…", hostReload: "Directory refreshed. Reload Model Assistant in Plugins before researching web references.",
     liveCatalog: "Endpoint model catalog",
     fallbackCatalog: "Some endpoints failed. Cached or local reference data is shown.",
     unlistedCurrent: "The current model is absent from the latest endpoint list. The session selection is retained.",
-    sourceLive: "/v1/models",
+    sourceLive: "Model directory API",
     sourceStale: "Endpoint cache (request failed)",
     noEfforts: "No reasoning levels are configured for this model. Configure them in Settings → Models.",
     effort: "Reasoning effort",
@@ -218,7 +236,7 @@ const formatContext = (value) =>
         ? `${+(value / 1000).toFixed(1)}K`
         : String(value);
 
-/** Read exact-route capacities and input types; supplier is the ID prefix defined by the channel. */
+/** Exact-route host/API facts override manual and web references; research cannot change request controls. */
 function metadataOf(group, model, prefs, hostDocument) {
   let configured, input;
   for (const section of hostDocument?.view?.namespaces || []) {
@@ -240,8 +258,11 @@ function metadataOf(group, model, prefs, hostDocument) {
       break;
     }
   }
-  const manual = prefs?.metadata?.[keyOf(group.id, model.id)] || {};
+  const manual = Object.fromEntries(Object.entries(prefs?.metadata?.[keyOf(group.id, model.id)] || {}).filter(([, value]) => value !== undefined));
+  const reference = model.reference;
+  const web = reference?.metadata || {};
   const info = {
+    ...web,
     ...(configured?.contextWindow === undefined
       ? {}
       : { contextWindow: configured.contextWindow }),
@@ -267,24 +288,24 @@ function metadataOf(group, model, prefs, hostDocument) {
   };
   const slash = model.id.indexOf("/");
   const prefix = slash > 0 ? model.id.slice(0, slash).trim() : undefined;
-  info.supplier =
-    group.source === "live" || group.source === "stale" ? prefix : typeof info.supplier === "string" && info.supplier.trim()
-      ? info.supplier.trim()
-      : prefix;
+  info.supplier = group.kind === "official" ? "DeepSeek" : prefix || (typeof info.supplier === "string" ? info.supplier.trim() : undefined);
+  const webSource = reference?.sources?.every((source) => source.official) ? "sourceOfficialWeb" : "sourceWeb";
+  info.reference = reference;
   info.source = group.source === "live" ? "sourceLive" : group.source === "stale" ? "sourceStale" : Object.keys(manual).length
     ? "sourceManual"
     : configured || model.reasoning || prefix
       ? "sourceHost"
       : "sourceUnknown";
-  info.contextSource = model.metadata?.contextWindow !== undefined ? info.source : manual.contextWindow !== undefined ? "sourceManual" : "sourceHost";
-  info.outputSource = model.metadata?.maxTokens !== undefined ? info.source : manual.maxTokens !== undefined ? "sourceManual" : "sourceHost";
+  info.contextSource = model.metadata?.contextWindow !== undefined ? (group.source === "local" ? "sourceNative" : info.source) : manual.contextWindow !== undefined ? "sourceManual" : configured?.contextWindow !== undefined ? "sourceHost" : web.contextWindow !== undefined ? webSource : "sourceUnknown";
+  info.outputSource = model.metadata?.maxTokens !== undefined ? (group.source === "local" ? "sourceNative" : info.source) : manual.maxTokens !== undefined ? "sourceManual" : configured?.maxTokens !== undefined ? "sourceHost" : web.maxTokens !== undefined ? webSource : "sourceUnknown";
   return info;
 }
 function RouteBadges({ group, info, t }) {
+  if (group.kind === "official") return <span className="ma-badges"><span className="ma-badge ma-official" title={`${t("official")} · ${group.name}`}>{t("official")}</span></span>;
   return (
     <span className="ma-badges">
       <span className="ma-badge ma-channel" title={group.id}>
-        {group.name}
+        {group.name}{group.kind ? ` · ${t(group.kind)}` : ""}
       </span>
       <span className="ma-badge">{info.supplier || t("unknownSupplier")}</span>
     </span>
@@ -373,6 +394,7 @@ function MetadataEditor({ form, usePreferences, loadCatalog, t }) {
     })),
   );
   const chosen = routeKey || routes[0]?.key || "";
+  const reference = routes.find((route) => route.key === chosen)?.model.reference;
   useEffect(() => {
     setDraft(settings.value?.metadata?.[chosen] || {});
   }, [chosen, settings.value?.metadata]);
@@ -419,6 +441,50 @@ function MetadataEditor({ form, usePreferences, loadCatalog, t }) {
     }
   }
   return (
+    <>
+    <section className="ma-editor" aria-label={t("discovery")}>
+      <h2>{t("discovery")}</h2>
+      <p>{t("discoveryHint")}</p>
+      {(catalog?.groups || []).map((group) => (
+        <label className="ma-field ma-provider-kind" key={group.id}>
+          <span>{group.name}</span>
+          <select disabled={busy || !settings.writable} value={settings.value?.providerKinds?.[group.id] || ""}
+            onChange={async (e) => {
+              const value = e.target.value;
+              setBusy(true);
+              try {
+                const ok = await form.mutate([{ op: value ? "set" : "unset", path: ["providerKinds", group.id], ...(value ? { value } : {}) }]);
+                if (!ok) throw new Error("save failed");
+                const result = await loadCatalog();
+                if (result.ok) setCatalog(result.value);
+              } catch { setMessage(t("saveFailed")); }
+              finally { setBusy(false); }
+            }}>
+            <option value="">{t("autoKind")}</option>
+            {["official", "thirdParty", "custom"].map((kind) => <option key={kind} value={kind}>{t(kind)}</option>)}
+          </select>
+          <small>{t(group.kind || "sourceUnknown")}</small>
+        </label>
+      ))}
+      <label className="ma-field">
+        {t("researchModel")}
+        <select aria-label={t("researchModel")} disabled={busy || !settings.writable} value={settings.value?.researchModel || ""}
+          onChange={async (e) => {
+            const value = e.target.value;
+            setBusy(true);
+            try { if (!await form.set("researchModel", value)) setMessage(t("saveFailed")); }
+            catch { setMessage(t("saveFailed")); }
+            finally { setBusy(false); }
+          }}>
+          <option value="">{t("researchOff")}</option>
+          {settings.value?.researchModel && !routes.some((route) => route.key === settings.value.researchModel)
+            ? <option value={settings.value.researchModel}>{t("unavailable")}</option> : null}
+          {routes.filter(({ model }) => model.researchEligible !== false).map(({ key, group, model }) => <option key={key} value={key}>{group.name} / {model.name}</option>)}
+        </select>
+      </label>
+      <p>{t("researchHint")}</p>
+      {message ? <p role="status">{message}</p> : null}
+    </section>
     <details className="ma-editor">
       <summary>{t("metadata")}</summary>
       <p>{t("metadataHint")}</p>
@@ -441,6 +507,12 @@ function MetadataEditor({ form, usePreferences, loadCatalog, t }) {
               ))}
             </select>
           </label>
+          {reference ? <div className="ma-reference">
+              <p>{t("sourceWeb")} · {t("referenceTime")}: {new Date(reference.fetchedAt).toLocaleString()}</p>
+              {reference.sources.map((source) => <p key={source.field}>
+                {t(source.field === "contextWindow" ? "contextTokens" : source.field)}: {String(reference.metadata[source.field])} · <a href={/^https:\/\//i.test(source.url) ? source.url : undefined} target="_blank" rel="noreferrer">{source.title}</a>
+              </p>)}
+            </div> : null}
           <div className="ma-fields">
             {[
               "supplier",
@@ -499,6 +571,7 @@ function MetadataEditor({ form, usePreferences, loadCatalog, t }) {
         </>
       )}
     </details>
+    </>
   );
 }
 
@@ -594,6 +667,7 @@ function ModelSeat({
   const [open, setOpen] = useState(false),
     [query, setQuery] = useState(""),
     [channel, setChannel] = useState(""),
+    [kind, setKind] = useState(""),
     [supplier, setSupplier] = useState(""),
     [capability, setCapability] = useState(""),
     [minContext, setMinContext] = useState(""),
@@ -604,13 +678,17 @@ function ModelSeat({
   const [refreshing, setRefreshing] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const requestSeq = useRef(0);
-  const state = { ...nativeState, groups: remoteCatalog?.groups ?? nativeState.groups };
+  const groups = useMemo(() => (remoteCatalog?.groups ?? nativeState.groups).map((group) => ({
+    ...group, kind: providerKind(group.id, undefined, preferences?.providerKinds?.[group.id]) ?? group.kind,
+  })), [remoteCatalog, nativeState.groups, preferences?.providerKinds]);
+  const state = { ...nativeState, groups, ...(remoteCatalog ? { error: null, failures: [] } : {}) };
+  const hasChannels = kind !== "official" && state.groups.some((group) => group.kind !== "official");
   const trigger = useRef(null),
     menu = useRef(null),
     search = useRef(null),
     rows = useRef([]);
   useEffect(() => {
-    if (available) load().catch(() => setError(t("loadFailed")));
+    if (available) load().catch(() => {});
   }, [available, load, t]);
   useEffect(() => {
     if (!available) return;
@@ -618,7 +696,7 @@ function ModelSeat({
     const abort = new AbortController();
     loadRemote(false, abort.signal).then((result) => {
       if (!abort.signal.aborted && requestSeq.current === seq) {
-        if (result.ok) setRemoteCatalog(result.value);
+        if (result.ok) { setRemoteCatalog(result.value); setError(""); }
         else setError(t("loadFailed"));
       }
     }).catch(() => { if (!abort.signal.aborted && requestSeq.current === seq) setError(t("loadFailed")); });
@@ -628,7 +706,9 @@ function ModelSeat({
     const seq = ++requestSeq.current;
     setRefreshing(true);
     try {
-      const result = await loadRemote(force);
+      const candidates = state.groups.filter((group) => !kind || group.kind === kind);
+      const researchProvider = force && preferences?.researchModel ? channel || candidates.find((group) => group.id === state.current?.provider)?.id || candidates[0]?.id : null;
+      const result = await loadRemote(force, undefined, researchProvider, state.current?.model);
       if (requestSeq.current !== seq) return;
       if (result.ok) { setRemoteCatalog(result.value); setError(""); }
       else setError(t("loadFailed"));
@@ -707,6 +787,7 @@ function ModelSeat({
           .toLowerCase()
           .includes(q)) &&
       (!channel || row.group.id === channel) &&
+      (!kind || row.group.kind === kind) &&
       (!supplier || (row.info.supplier || "__unknown") === supplier) &&
       (!capability || row.info[capability] === true) &&
       (!minContext ||
@@ -715,7 +796,7 @@ function ModelSeat({
   );
   useEffect(() => {
     setActive(-1);
-  }, [query, channel, supplier, capability, minContext]);
+  }, [query, channel, kind, supplier, capability, minContext]);
   if (!available) return null;
   const busy = state.pending !== null || preparing;
   function close() {
@@ -781,6 +862,7 @@ function ModelSeat({
   const reset = () => {
     setQuery("");
     setChannel("");
+    setKind("");
     setSupplier("");
     setCapability("");
     setMinContext("");
@@ -799,8 +881,8 @@ function ModelSeat({
         <Icon kind="search" />
         <input
           ref={search}
-          aria-label={t("search")}
-          placeholder={t("search")}
+          aria-label={t(hasChannels ? "search" : "searchOfficial")}
+          placeholder={t(hasChannels ? "search" : "searchOfficial")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -823,32 +905,36 @@ function ModelSeat({
         <button className="ma-text-button" disabled={refreshing || busy} onClick={() => refreshRemote(true)}>
           {refreshing ? t("loading") : t("refresh")}
         </button>
-        <select
+        <select aria-label={t("kinds")} value={kind} onChange={(e) => { setKind(e.target.value); setChannel(""); setSupplier(""); }}>
+          <option value="">{t("kinds")}</option>
+          {["official", "thirdParty", "custom"].map((value) => <option key={value} value={value}>{t(value)}</option>)}
+        </select>
+        {hasChannels ? <select
           aria-label={t("channels")}
           value={channel}
           onChange={(e) => setChannel(e.target.value)}
         >
           <option value="">{t("channels")}</option>
-          {state.groups.map((group) => (
+          {state.groups.filter((group) => group.kind !== "official").map((group) => (
             <option key={group.id} value={group.id}>
               {group.name}
             </option>
           ))}
-        </select>
-        <select
+        </select> : null}
+        {hasChannels ? <select
           aria-label={t("suppliers")}
           value={supplier}
           onChange={(e) => setSupplier(e.target.value)}
         >
           <option value="">{t("suppliers")}</option>
-          {[...new Set(all.map((row) => row.info.supplier || "__unknown"))].map(
+          {[...new Set(all.filter((row) => row.group.kind !== "official").map((row) => row.info.supplier || "__unknown"))].map(
             (value) => (
               <option key={value} value={value}>
                 {value === "__unknown" ? t("unknownSupplier") : value}
               </option>
             ),
           )}
-        </select>
+        </select> : null}
         <select
           aria-label={t("capability")}
           value={capability}
@@ -873,7 +959,7 @@ function ModelSeat({
             </option>
           ))}
         </select>
-        {query || channel || supplier || capability || minContext ? (
+        {query || channel || kind || supplier || capability || minContext ? (
           <button className="ma-text-button" onClick={reset}>
             {t("reset")}
           </button>
@@ -904,7 +990,7 @@ function ModelSeat({
               onClick={() => choose(row)}
               aria-label={`${row.model.name}, ${row.group.name}, ${row.info.supplier || t("unknownSupplier")}, ${row.model.id}`}
             >
-              <span className="ma-model">
+              <span className="ma-model" title={row.info.reference ? `${t("sourceWeb")} · ${t("referenceTime")}: ${new Date(row.info.reference.fetchedAt).toLocaleString()}\n${row.info.reference.sources.map((source) => `${t(source.field === "contextWindow" ? "contextTokens" : source.field)}: ${source.url}`).join("\n")}${row.info.knowledgeCutoff ? `\n${t("knowledgeCutoff")}: ${row.info.knowledgeCutoff}` : ""}` : undefined}>
                 <strong title={row.model.id}>{row.model.name}</strong>
                 <RouteBadges group={row.group} info={row.info} t={t} />
               </span>
@@ -936,7 +1022,7 @@ function ModelSeat({
       {error || state.error || state.failures.length > 0 ? (
         <div className="ma-error" role="alert">
           {error || state.error || t("loadFailed")}
-          <button onClick={() => load().catch(() => setError(t("loadFailed")))}>
+          <button disabled={refreshing} onClick={() => refreshRemote(true)}>
             {t("retry")}
           </button>
         </div>
@@ -966,6 +1052,10 @@ function ModelSeat({
         </div>
       ) : null}
       {remoteCatalog?.failures.length ? <p className="ma-effort ma-effort-note" role="status">{t("fallbackCatalog")} {remoteCatalog.failures.map((f) => `${f.id}: ${f.code}`).join(" · ")}</p> : null}
+      {remoteCatalog?.research ? <p className="ma-effort ma-effort-note" role="status">
+        {remoteCatalog.research.code === "HOST_RELOAD_REQUIRED" ? t("hostReload") : remoteCatalog.research.code ? `${t("researchUnavailable")} (${remoteCatalog.research.code})`
+          : !remoteCatalog.research.disabled ? `${t("researchUpdated")}: ${remoteCatalog.research.updated} / ${remoteCatalog.research.attempted} · ${remoteCatalog.research.total}${remoteCatalog.research.limited ? ` · ${t("researchLimited")}` : ""}` : ""}
+      </p> : null}
       {current?.unlisted ? <p className="ma-effort ma-effort-note" role="status">{t("unlistedCurrent")}</p> : null}
       <p className="ma-foot">
         <Icon kind="info" size={14} />
@@ -986,7 +1076,7 @@ function ModelSeat({
           if (!open) {
             reset();
             setPosition(null);
-            refreshRemote(false);
+            if (!refreshing) refreshRemote(false);
           }
           setOpen((value) => !value);
         }}
@@ -1042,7 +1132,7 @@ export function apply(ctx) {
   const t = ctx.locale.bind(NS),
     form = ctx.configForms.get(NS),
     mirror = ctx.configForms.describe();
-  const loadRemote = (force = false, signal) => ctx.connection.rpc.call("/api", "modelAssistant/catalog", { args: { force } }, signal);
+  const loadRemote = (force = false, signal, researchProvider = null, preferredModel = null) => loadCatalogRPC(ctx.connection.rpc, force, signal, researchProvider, preferredModel);
   const loadCatalog = () => loadRemote(false);
   ctx.slots.inject("main", () =>
     ctx.slots.register(

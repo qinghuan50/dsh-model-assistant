@@ -427,6 +427,12 @@
   cursor: pointer;
   font-size: 14px;
 }
+.ma-editor h2 { font-size: 15px; font-weight: 500; margin: 0; }
+.ma-field.ma-provider-kind { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(130px, 180px) 90px; align-items: center; }
+.ma-provider-kind small { color: var(--dsw-alias-label-tertiary); }
+.ma-reference { margin-top: 16px; padding: 12px; border: 0.5px solid var(--dsw-alias-border-l2); border-radius: 7px; font-size: 12px; overflow-wrap: anywhere; }
+.ma-reference a { color: var(--dsw-alias-state-business-primary); }
+@media (max-width: 600px) { .ma-field.ma-provider-kind { grid-template-columns: 1fr 1fr; } .ma-provider-kind small { grid-column: 1/-1; } }
 .ma-editor > p {
   color: var(--dsw-alias-label-tertiary);
   line-height: 1.7;
