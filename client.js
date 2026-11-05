@@ -62,6 +62,73 @@ async function loadCatalogRPC(rpc, force = false, signal, researchProvider = nul
   }
 }
 
+// src/directory.js
+var keyOf = (provider, model) => JSON.stringify([provider, model]);
+function directoryVersion(groups, document2) {
+  return JSON.stringify([
+    groups.map((group) => [group.id, group.name, group.models.map((model) => [model.id, model.name, model.reasoning])]),
+    (document2?.view?.namespaces || []).filter((section) => section.value?.providers).map((section) => [section.ns, Object.entries(section.value.providers).map(([id, provider]) => [
+      id,
+      provider.api,
+      provider.baseURL,
+      provider.apiKeyEnv,
+      provider.defaultInput,
+      provider.models,
+      provider.modelOverrides
+    ])])
+  ]);
+}
+function reconcileDirectory(remote, nativeGroups, providerKinds, providerKind2) {
+  if (!remote) return nativeGroups.map((group) => ({
+    ...group,
+    kind: providerKind2(group.id, void 0, providerKinds?.[group.id]) ?? group.kind
+  }));
+  const native = new Map(nativeGroups.map((group) => [group.id, group]));
+  return remote.groups.flatMap((group) => {
+    const host = native.get(group.id);
+    if (!host) return [];
+    const kind = providerKind2(group.id, void 0, providerKinds?.[group.id]) ?? group.kind;
+    if (group.source === "local") {
+      const previous = new Map(group.models.map((model) => [model.id, model]));
+      return [{ ...group, kind, name: host.name, models: host.models.map((model) => {
+        const { reasoning, ...saved } = previous.get(model.id) || {};
+        return { ...saved, ...model, effective: {
+          ...saved.effective,
+          reasoning: !!model.reasoning?.efforts?.some((effort) => effort.id !== "off")
+        }, researchEligible: true };
+      }) }];
+    }
+    const models = new Map(host.models.map((model) => [model.id, model]));
+    return [{ ...group, kind, name: host.name, models: group.models.map((model) => {
+      const resolved = models.get(model.id);
+      const { reasoning, effective, ...rest } = model;
+      return {
+        ...rest,
+        effective: resolved ? {
+          ...effective,
+          reasoning: !!resolved.reasoning?.efforts?.some((effort) => effort.id !== "off")
+        } : { vision: false, reasoning: false },
+        researchEligible: !!resolved,
+        ...resolved?.reasoning ? { reasoning: resolved.reasoning } : {}
+      };
+    }) }];
+  }).concat(nativeGroups.filter((group) => !remote.groups.some((item) => item.id === group.id)).map((group) => ({
+    ...group,
+    source: "local",
+    kind: providerKind2(group.id, void 0, providerKinds?.[group.id]) ?? group.kind
+  })));
+}
+function missingSelection(current, nativeGroups) {
+  if (!current) return null;
+  const group = nativeGroups.find((item) => item.id === current.provider);
+  const model = group?.models.find((item) => keyOf(group.id, item.id) === keyOf(current.provider, current.model));
+  return {
+    group: group || { id: current.provider, name: current.provider, models: [] },
+    model: { id: current.model, name: model?.name || current.model, effective: { vision: false, reasoning: false } },
+    unlisted: true
+  };
+}
+
 // src/client.jsx
 var NS = "local-model-assistant";
 var PANEL = "local-model-assistant";
@@ -80,7 +147,7 @@ var dictionaries = {
     intro: "\u7BA1\u7406\u804A\u5929\u6846\u4E2D\u7684\u6A21\u578B\u4FE1\u606F\u5C55\u793A\u4E0E\u7B5B\u9009\u529F\u80FD\u3002",
     back: "\u8FD4\u56DE\u5BF9\u8BDD",
     enabled: "\u542F\u7528\u6A21\u578B\u52A9\u624B",
-    enabledHint: "\u5C55\u793A\u6E20\u9053\u3001\u5382\u5546\u3001\u4E0A\u4E0B\u6587\u3001\u500D\u7387\u4E0E\u80FD\u529B\uFF0C\u5E76\u652F\u6301\u5206\u7C7B\u7B5B\u9009\u3002",
+    enabledHint: "\u540C\u6B65\u5DF2\u914D\u7F6E\u6A21\u578B\u7684\u8F93\u5165\u7C7B\u578B\u548C\u63A8\u7406\u7B49\u7EA7\uFF0C\u5E76\u6309\u751F\u6548\u80FD\u529B\u5C55\u793A\u4E0E\u7B5B\u9009\u3002",
     sidebar: "\u5728\u4FA7\u680F\u663E\u793A\u5165\u53E3",
     sidebarHint: "\u9690\u85CF\u540E\u4ECD\u53EF\u4ECE\u8BBE\u7F6E\u4E2D\u7684\u300C\u6A21\u578B\u52A9\u624B\u300D\u8FDB\u5165\u3002",
     saved: "\u8BBE\u7F6E\u81EA\u52A8\u4FDD\u5B58\u3002\u5173\u95ED\u529F\u80FD\u540E\u4F7F\u7528\u5BBF\u4E3B\u539F\u6709\u6A21\u578B\u9009\u62E9\u5668\u3002",
@@ -137,13 +204,13 @@ var dictionaries = {
     searchOfficial: "\u641C\u7D22\u6A21\u578B\u2026",
     hostReload: "\u6A21\u578B\u76EE\u5F55\u5DF2\u5237\u65B0\uFF1B\u8054\u7F51\u8D44\u6599\u9700\u8981\u5148\u5728\u63D2\u4EF6\u9875\u91CD\u65B0\u52A0\u8F7D\u6A21\u578B\u52A9\u624B\u3002",
     liveCatalog: "\u63A5\u53E3\u6A21\u578B\u5217\u8868",
-    fallbackCatalog: "\u90E8\u5206\u6E20\u9053\u8BF7\u6C42\u5931\u8D25\uFF0C\u6B63\u5728\u4F7F\u7528\u7F13\u5B58\u6216\u672C\u5730\u53C2\u8003\u8D44\u6599\u3002",
-    unlistedCurrent: "\u5F53\u524D\u6A21\u578B\u672A\u5728\u6700\u65B0\u63A5\u53E3\u5217\u8868\u4E2D\uFF0C\u5F53\u524D\u4F1A\u8BDD\u9009\u62E9\u4ECD\u4FDD\u7559\u3002",
+    fallbackCatalog: "\u90E8\u5206\u76EE\u5F55\u8BFB\u53D6\u6216\u80FD\u529B\u540C\u6B65\u5931\u8D25\uFF0C\u5DF2\u4FDD\u7559\u53EF\u7528\u6A21\u578B\u548C\u751F\u6548\u914D\u7F6E\u3002",
+    unlistedCurrent: "\u5F53\u524D\u6A21\u578B\u5DF2\u4ECE\u914D\u7F6E\u6216\u6700\u65B0\u63A5\u53E3\u5217\u8868\u4E2D\u79FB\u9664\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u6A21\u578B\u3002\u5F53\u524D\u4F1A\u8BDD\u8BB0\u5F55\u4ECD\u4FDD\u7559\u3002",
     sourceLive: "\u6A21\u578B\u76EE\u5F55\u63A5\u53E3",
     sourceStale: "\u63A5\u53E3\u7F13\u5B58\uFF08\u8BF7\u6C42\u5931\u8D25\uFF09",
     noEfforts: "\u5F53\u524D\u6A21\u578B\u672A\u914D\u7F6E\u63A8\u7406\u7B49\u7EA7\uFF0C\u53EF\u5728\u5BBF\u4E3B\u300C\u8BBE\u7F6E \u2192 \u6A21\u578B\u300D\u4E2D\u914D\u7F6E\u3002",
     effort: "\u63A8\u7406\u7B49\u7EA7",
-    foot: "\u500D\u7387\u76F8\u5BF9\u4E8E\u5404\u6E20\u9053\u57FA\u51C6\uFF0C\u975E\u6700\u7EC8\u5355\u4EF7\uFF1B\u672A\u77E5\u8D44\u6599\u672A\u505A\u63A8\u65AD\u3002",
+    foot: "\u8F93\u5165\u548C\u63A8\u7406\u80FD\u529B\u6309\u5BBF\u4E3B\u751F\u6548\u914D\u7F6E\u663E\u793A\uFF1B\u500D\u7387\u975E\u6700\u7EC8\u5355\u4EF7\uFF0C\u672A\u77E5\u8D44\u6599\u4E0D\u4F5C\u63A8\u65AD\u3002",
     metadata: "\u8865\u5145\u6A21\u578B\u8D44\u6599",
     metadataHint: "\u6309\u6E20\u9053\u548C\u6A21\u578B ID \u5355\u72EC\u4FDD\u5B58\uFF1B\u4EC5\u7528\u4E8E\u5C55\u793A\u4E0E\u7B5B\u9009\uFF0C\u4E0D\u4F1A\u6539\u53D8\u8BF7\u6C42\u8DEF\u7531\u6216\u8BA1\u8D39\u3002",
     chooseRoute: "\u9009\u62E9\u6A21\u578B\u8DEF\u7EBF",
@@ -228,8 +295,8 @@ var dictionaries = {
     searchOfficial: "Search models\u2026",
     hostReload: "Directory refreshed. Reload Model Assistant in Plugins before researching web references.",
     liveCatalog: "Endpoint model catalog",
-    fallbackCatalog: "Some endpoints failed. Cached or local reference data is shown.",
-    unlistedCurrent: "The current model is absent from the latest endpoint list. The session selection is retained.",
+    fallbackCatalog: "Some directory reads or capability updates failed. Available models and effective settings are retained.",
+    unlistedCurrent: "The current model was removed from configuration or the latest endpoint list. Select another model; conversation history is retained.",
     sourceLive: "Model directory API",
     sourceStale: "Endpoint cache (request failed)",
     noEfforts: "No reasoning levels are configured for this model. Configure them in Settings \u2192 Models.",
@@ -289,7 +356,7 @@ function Icon({ kind = "box", size = 18, ...props }) {
     /* @__PURE__ */ import_react.default.createElement("path", { d: paths[kind] || paths.box })
   );
 }
-var keyOf = (provider, model) => JSON.stringify([provider, model]);
+var keyOf2 = (provider, model) => JSON.stringify([provider, model]);
 var knownNumber = (value) => typeof value === "number" && Number.isFinite(value);
 var formatContext = (value) => !knownNumber(value) ? null : value >= 1e6 ? `${+(value / 1e6).toFixed(2)}M` : value >= 1e3 ? `${+(value / 1e3).toFixed(1)}K` : String(value);
 function metadataOf(group, model, prefs, hostDocument) {
@@ -298,16 +365,18 @@ function metadataOf(group, model, prefs, hostDocument) {
     const provider = section.value?.providers?.[group.id];
     if (!provider || !Array.isArray(provider.models) && !provider.modelOverrides)
       continue;
-    const candidate = provider.models?.find((item) => item.id === model.id) ?? provider.modelOverrides?.[model.id];
+    const row = provider.models?.find((item) => item.id === model.id);
+    const override = provider.modelOverrides?.[model.id];
+    const candidate = row || override ? { ...row, ...Object.fromEntries(Object.entries(override || {}).filter(([, value]) => value !== void 0)) } : void 0;
     if (candidate) {
       configured = candidate;
-      input = [candidate.input, provider.defaultInput].find(
+      input = [candidate.input, ...group.kind === "custom" ? [provider.defaultInput?.length ? provider.defaultInput : ["text"]] : []].find(
         (value) => Array.isArray(value) && value.length > 0
       );
       break;
     }
   }
-  const manual = Object.fromEntries(Object.entries(prefs?.metadata?.[keyOf(group.id, model.id)] || {}).filter(([, value]) => value !== void 0));
+  const manual = Object.fromEntries(Object.entries(prefs?.metadata?.[keyOf2(group.id, model.id)] || {}).filter(([, value]) => value !== void 0));
   const reference = model.reference;
   const web = reference?.metadata || {};
   const info = {
@@ -320,7 +389,10 @@ function metadataOf(group, model, prefs, hostDocument) {
     },
     ...model.reasoning ? { reasoning: true } : configured?.reasoningEfforts === false ? { reasoning: false } : {},
     ...manual,
-    ...model.metadata
+    ...model.metadata,
+    ...model.effective,
+    ...input ? { text: input.includes("text"), vision: input.includes("image") } : {},
+    ...configured?.reasoningEfforts === false ? { reasoning: false } : {}
   };
   const slash = model.id.indexOf("/");
   const prefix = slash > 0 ? model.id.slice(0, slash).trim() : void 0;
@@ -328,8 +400,8 @@ function metadataOf(group, model, prefs, hostDocument) {
   const webSource = reference?.sources?.every((source) => source.official) ? "sourceOfficialWeb" : "sourceWeb";
   info.reference = reference;
   info.source = group.source === "live" ? "sourceLive" : group.source === "stale" ? "sourceStale" : Object.keys(manual).length ? "sourceManual" : configured || model.reasoning || prefix ? "sourceHost" : "sourceUnknown";
-  info.contextSource = model.metadata?.contextWindow !== void 0 ? group.source === "local" ? "sourceNative" : info.source : manual.contextWindow !== void 0 ? "sourceManual" : configured?.contextWindow !== void 0 ? "sourceHost" : web.contextWindow !== void 0 ? webSource : "sourceUnknown";
-  info.outputSource = model.metadata?.maxTokens !== void 0 ? group.source === "local" ? "sourceNative" : info.source : manual.maxTokens !== void 0 ? "sourceManual" : configured?.maxTokens !== void 0 ? "sourceHost" : web.maxTokens !== void 0 ? webSource : "sourceUnknown";
+  info.contextSource = model.effective?.contextWindow !== void 0 ? "sourceHost" : model.metadata?.contextWindow !== void 0 ? group.source === "local" ? "sourceNative" : info.source : manual.contextWindow !== void 0 ? "sourceManual" : configured?.contextWindow !== void 0 ? "sourceHost" : web.contextWindow !== void 0 ? webSource : "sourceUnknown";
+  info.outputSource = model.effective?.maxTokens !== void 0 ? "sourceHost" : model.metadata?.maxTokens !== void 0 ? group.source === "local" ? "sourceNative" : info.source : manual.maxTokens !== void 0 ? "sourceManual" : configured?.maxTokens !== void 0 ? "sourceHost" : web.maxTokens !== void 0 ? webSource : "sourceUnknown";
   return info;
 }
 function RouteBadges({ group, info, t }) {
@@ -388,7 +460,7 @@ function MetadataEditor({ form, usePreferences, loadCatalog, t }) {
     (group) => group.models.map((model) => ({
       group,
       model,
-      key: keyOf(group.id, model.id)
+      key: keyOf2(group.id, model.id)
     }))
   );
   const chosen = routeKey || routes[0]?.key || "";
@@ -581,11 +653,13 @@ function ModelSeat({
   const [remoteCatalog, setRemoteCatalog] = (0, import_react.useState)(null);
   const [refreshing, setRefreshing] = (0, import_react.useState)(false);
   const [preparing, setPreparing] = (0, import_react.useState)(false);
+  const [catalogTick, setCatalogTick] = (0, import_react.useState)(0);
   const requestSeq = (0, import_react.useRef)(0);
-  const groups = (0, import_react.useMemo)(() => (remoteCatalog?.groups ?? nativeState.groups).map((group) => ({
-    ...group,
-    kind: providerKind(group.id, void 0, preferences?.providerKinds?.[group.id]) ?? group.kind
-  })), [remoteCatalog, nativeState.groups, preferences?.providerKinds]);
+  const configurationKey = directoryVersion(nativeState.groups, hostSettings);
+  const groups = (0, import_react.useMemo)(
+    () => reconcileDirectory(remoteCatalog, nativeState.groups, preferences?.providerKinds, providerKind),
+    [remoteCatalog, nativeState.groups, preferences?.providerKinds]
+  );
   const state = { ...nativeState, groups, ...remoteCatalog ? { error: null, failures: [] } : {} };
   const hasChannels = kind !== "official" && state.groups.some((group) => group.kind !== "official");
   const trigger = (0, import_react.useRef)(null), menu = (0, import_react.useRef)(null), search = (0, import_react.useRef)(null), rows = (0, import_react.useRef)([]);
@@ -594,24 +668,40 @@ function ModelSeat({
     });
   }, [available, load, t]);
   (0, import_react.useEffect)(() => {
-    if (!available) return;
-    const seq = ++requestSeq.current;
+    if (!available || refreshing || preparing) return;
     const abort = new AbortController();
-    loadRemote(false, abort.signal).then((result) => {
-      if (!abort.signal.aborted && requestSeq.current === seq) {
-        if (result.ok) {
-          setRemoteCatalog(result.value);
-          setError("");
-        } else setError(t("loadFailed"));
-      }
-    }).catch(() => {
-      if (!abort.signal.aborted && requestSeq.current === seq) setError(t("loadFailed"));
-    });
+    const timer = setTimeout(() => {
+      const seq = ++requestSeq.current;
+      loadRemote(false, abort.signal).then((result) => {
+        if (!abort.signal.aborted && requestSeq.current === seq) {
+          if (result.ok) {
+            setRemoteCatalog(result.value);
+            setError("");
+            if (result.value.capabilitiesChanged) load().catch(() => {
+            });
+          } else setError(t("loadFailed"));
+        }
+      }).catch(() => {
+        if (!abort.signal.aborted && requestSeq.current === seq) setError(t("loadFailed"));
+      });
+    }, 250);
     return () => {
+      clearTimeout(timer);
       abort.abort();
-      requestSeq.current++;
     };
-  }, [available, loadRemote, t]);
+  }, [available, loadRemote, load, t, configurationKey, catalogTick, refreshing, preparing]);
+  (0, import_react.useEffect)(() => {
+    if (!available) return;
+    const check = () => {
+      if (document.visibilityState === "visible") setCatalogTick((tick) => tick + 1);
+    };
+    const timer = setInterval(check, 3e5);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [available]);
   async function refreshRemote(force) {
     const seq = ++requestSeq.current;
     setRefreshing(true);
@@ -621,6 +711,7 @@ function ModelSeat({
       const result = await loadRemote(force, void 0, researchProvider, state.current?.model);
       if (requestSeq.current !== seq) return;
       if (result.ok) {
+        if (result.value.capabilitiesChanged) await load();
         setRemoteCatalog(result.value);
         setError("");
       } else setError(t("loadFailed"));
@@ -670,7 +761,7 @@ function ModelSeat({
         group,
         model,
         info: metadataOf(group, model, preferences, hostSettings),
-        key: keyOf(group.id, model.id)
+        key: keyOf2(group.id, model.id)
       }))
     ),
     [state.groups, preferences, hostSettings]
@@ -678,10 +769,10 @@ function ModelSeat({
   let current = all.find(
     (row) => row.group.id === state.current?.provider && row.model.id === state.current.model
   );
-  if (!current && nativeState.current) {
-    const group = nativeState.groups.find((g) => g.id === nativeState.current.provider);
-    const model = group?.models.find((m) => m.id === nativeState.current.model);
-    if (group && model) current = { group, model: { id: model.id, name: model.name }, info: metadataOf(group, model, preferences, hostSettings), unlisted: true };
+  if ((!current || current.model.researchEligible === false) && nativeState.current) {
+    const missing = missingSelection(nativeState.current, nativeState.groups);
+    missing.group = { ...missing.group, kind: providerKind(missing.group.id, void 0, preferences?.providerKinds?.[missing.group.id]) ?? missing.group.kind };
+    current = { ...missing, info: { ...metadataOf(missing.group, missing.model, preferences, hostSettings), vision: false, reasoning: false } };
   }
   const reasoning = current?.model.reasoning;
   const effectiveEffort = reasoning?.efforts.some((e) => e.id === state.current?.reasoningEffort) ? state.current.reasoningEffort : reasoning?.defaultEffort;
@@ -707,7 +798,11 @@ function ModelSeat({
     try {
       const ready = await prepare(row.group.id, row.model.id, reasoningEffort ?? null);
       if (!ready.ok) throw new Error("prepare failed");
-      if (ready.value.changed) await load();
+      if (ready.value.changed) {
+        await load();
+        const catalog = await loadRemote(false);
+        if (catalog.ok) setRemoteCatalog(catalog.value);
+      }
       const result = await select({
         provider: row.group.id,
         model: row.model.id,
@@ -909,7 +1004,7 @@ ${t("knowledgeCutoff")}: ${row.info.knowledgeCutoff}` : ""}` : void 0 }, /* @__P
       onChange: (effort) => choose(current, effort),
       t
     }
-  ) : null, !open && error ? /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-seat-error", role: "alert" }, error) : null, open ? (0, import_react_dom.createPortal)(popup, document.body) : null);
+  ) : null, !open && error ? /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-seat-error", role: "alert" }, error) : null, !open && current?.unlisted ? /* @__PURE__ */ import_react.default.createElement("span", { className: "ma-seat-error", role: "status" }, t("unlistedCurrent")) : null, open ? (0, import_react_dom.createPortal)(popup, document.body) : null);
 }
 var inject = [
   "slots",

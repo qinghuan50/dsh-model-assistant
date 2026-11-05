@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import css from "./styles.css";
 import { providerKind } from "./provenance.js";
 import { loadCatalogRPC } from "./transport.js";
+import { directoryVersion, reconcileDirectory, missingSelection } from "./directory.js";
 
 const NS = "local-model-assistant";
 const PANEL = "local-model-assistant";
@@ -33,7 +34,7 @@ const dictionaries = {
     intro: "管理聊天框中的模型信息展示与筛选功能。",
     back: "返回对话",
     enabled: "启用模型助手",
-    enabledHint: "展示渠道、厂商、上下文、倍率与能力，并支持分类筛选。",
+    enabledHint: "同步已配置模型的输入类型和推理等级，并按生效能力展示与筛选。",
     sidebar: "在侧栏显示入口",
     sidebarHint: "隐藏后仍可从设置中的「模型助手」进入。",
     saved: "设置自动保存。关闭功能后使用宿主原有模型选择器。",
@@ -78,13 +79,13 @@ const dictionaries = {
     sourceWeb: "联网参考资料", sourceOfficialWeb: "官网参考资料", referenceTime: "检索时间", knowledgeCutoff: "知识截止日期",
     sourceNative: "宿主模型目录", searchOfficial: "搜索模型…", hostReload: "模型目录已刷新；联网资料需要先在插件页重新加载模型助手。",
     liveCatalog: "接口模型列表",
-    fallbackCatalog: "部分渠道请求失败，正在使用缓存或本地参考资料。",
-    unlistedCurrent: "当前模型未在最新接口列表中，当前会话选择仍保留。",
+    fallbackCatalog: "部分目录读取或能力同步失败，已保留可用模型和生效配置。",
+    unlistedCurrent: "当前模型已从配置或最新接口列表中移除，请重新选择模型。当前会话记录仍保留。",
     sourceLive: "模型目录接口",
     sourceStale: "接口缓存（请求失败）",
     noEfforts: "当前模型未配置推理等级，可在宿主「设置 → 模型」中配置。",
     effort: "推理等级",
-    foot: "倍率相对于各渠道基准，非最终单价；未知资料未做推断。",
+    foot: "输入和推理能力按宿主生效配置显示；倍率非最终单价，未知资料不作推断。",
     metadata: "补充模型资料",
     metadataHint:
       "按渠道和模型 ID 单独保存；仅用于展示与筛选，不会改变请求路由或计费。",
@@ -160,8 +161,8 @@ const dictionaries = {
     sourceWeb: "Web reference", sourceOfficialWeb: "Official documentation reference", referenceTime: "Retrieved", knowledgeCutoff: "Knowledge cutoff",
     sourceNative: "Host model directory", searchOfficial: "Search models…", hostReload: "Directory refreshed. Reload Model Assistant in Plugins before researching web references.",
     liveCatalog: "Endpoint model catalog",
-    fallbackCatalog: "Some endpoints failed. Cached or local reference data is shown.",
-    unlistedCurrent: "The current model is absent from the latest endpoint list. The session selection is retained.",
+    fallbackCatalog: "Some directory reads or capability updates failed. Available models and effective settings are retained.",
+    unlistedCurrent: "The current model was removed from configuration or the latest endpoint list. Select another model; conversation history is retained.",
     sourceLive: "Model directory API",
     sourceStale: "Endpoint cache (request failed)",
     noEfforts: "No reasoning levels are configured for this model. Configure them in Settings → Models.",
@@ -246,13 +247,13 @@ function metadataOf(group, model, prefs, hostDocument) {
       (!Array.isArray(provider.models) && !provider.modelOverrides)
     )
       continue;
-    const candidate =
-      provider.models?.find((item) => item.id === model.id) ??
-      provider.modelOverrides?.[model.id];
+    const row = provider.models?.find((item) => item.id === model.id);
+    const override = provider.modelOverrides?.[model.id];
+    const candidate = row || override ? { ...row, ...Object.fromEntries(Object.entries(override || {}).filter(([, value]) => value !== undefined)) } : undefined;
     if (candidate) {
       configured = candidate;
       // The settings mirror can expose an unset array as []; the native editor treats it as inherited.
-      input = [candidate.input, provider.defaultInput].find(
+      input = [candidate.input, ...(group.kind === "custom" ? [provider.defaultInput?.length ? provider.defaultInput : ["text"]] : [])].find(
         (value) => Array.isArray(value) && value.length > 0,
       );
       break;
@@ -285,6 +286,9 @@ function metadataOf(group, model, prefs, hostDocument) {
         : {}),
     ...manual,
     ...model.metadata,
+    ...model.effective,
+    ...(input ? { text: input.includes("text"), vision: input.includes("image") } : {}),
+    ...(configured?.reasoningEfforts === false ? { reasoning: false } : {}),
   };
   const slash = model.id.indexOf("/");
   const prefix = slash > 0 ? model.id.slice(0, slash).trim() : undefined;
@@ -296,8 +300,8 @@ function metadataOf(group, model, prefs, hostDocument) {
     : configured || model.reasoning || prefix
       ? "sourceHost"
       : "sourceUnknown";
-  info.contextSource = model.metadata?.contextWindow !== undefined ? (group.source === "local" ? "sourceNative" : info.source) : manual.contextWindow !== undefined ? "sourceManual" : configured?.contextWindow !== undefined ? "sourceHost" : web.contextWindow !== undefined ? webSource : "sourceUnknown";
-  info.outputSource = model.metadata?.maxTokens !== undefined ? (group.source === "local" ? "sourceNative" : info.source) : manual.maxTokens !== undefined ? "sourceManual" : configured?.maxTokens !== undefined ? "sourceHost" : web.maxTokens !== undefined ? webSource : "sourceUnknown";
+  info.contextSource = model.effective?.contextWindow !== undefined ? "sourceHost" : model.metadata?.contextWindow !== undefined ? (group.source === "local" ? "sourceNative" : info.source) : manual.contextWindow !== undefined ? "sourceManual" : configured?.contextWindow !== undefined ? "sourceHost" : web.contextWindow !== undefined ? webSource : "sourceUnknown";
+  info.outputSource = model.effective?.maxTokens !== undefined ? "sourceHost" : model.metadata?.maxTokens !== undefined ? (group.source === "local" ? "sourceNative" : info.source) : manual.maxTokens !== undefined ? "sourceManual" : configured?.maxTokens !== undefined ? "sourceHost" : web.maxTokens !== undefined ? webSource : "sourceUnknown";
   return info;
 }
 function RouteBadges({ group, info, t }) {
@@ -677,10 +681,11 @@ function ModelSeat({
   const [remoteCatalog, setRemoteCatalog] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [preparing, setPreparing] = useState(false);
+  const [catalogTick, setCatalogTick] = useState(0);
   const requestSeq = useRef(0);
-  const groups = useMemo(() => (remoteCatalog?.groups ?? nativeState.groups).map((group) => ({
-    ...group, kind: providerKind(group.id, undefined, preferences?.providerKinds?.[group.id]) ?? group.kind,
-  })), [remoteCatalog, nativeState.groups, preferences?.providerKinds]);
+  const configurationKey = directoryVersion(nativeState.groups, hostSettings);
+  const groups = useMemo(() => reconcileDirectory(remoteCatalog, nativeState.groups, preferences?.providerKinds, providerKind),
+    [remoteCatalog, nativeState.groups, preferences?.providerKinds]);
   const state = { ...nativeState, groups, ...(remoteCatalog ? { error: null, failures: [] } : {}) };
   const hasChannels = kind !== "official" && state.groups.some((group) => group.kind !== "official");
   const trigger = useRef(null),
@@ -691,17 +696,27 @@ function ModelSeat({
     if (available) load().catch(() => {});
   }, [available, load, t]);
   useEffect(() => {
-    if (!available) return;
-    const seq = ++requestSeq.current;
+    if (!available || refreshing || preparing) return;
     const abort = new AbortController();
-    loadRemote(false, abort.signal).then((result) => {
-      if (!abort.signal.aborted && requestSeq.current === seq) {
-        if (result.ok) { setRemoteCatalog(result.value); setError(""); }
-        else setError(t("loadFailed"));
-      }
-    }).catch(() => { if (!abort.signal.aborted && requestSeq.current === seq) setError(t("loadFailed")); });
-    return () => { abort.abort(); requestSeq.current++; };
-  }, [available, loadRemote, t]);
+    // Coalesce native settings/catalog events; never interrupt an explicit refresh or selection.
+    const timer = setTimeout(() => {
+      const seq = ++requestSeq.current;
+      loadRemote(false, abort.signal).then((result) => {
+        if (!abort.signal.aborted && requestSeq.current === seq) {
+          if (result.ok) { setRemoteCatalog(result.value); setError(""); if (result.value.capabilitiesChanged) load().catch(() => {}); }
+          else setError(t("loadFailed"));
+        }
+      }).catch(() => { if (!abort.signal.aborted && requestSeq.current === seq) setError(t("loadFailed")); });
+    }, 250);
+    return () => { clearTimeout(timer); abort.abort(); };
+  }, [available, loadRemote, load, t, configurationKey, catalogTick, refreshing, preparing]);
+  useEffect(() => {
+    if (!available) return;
+    const check = () => { if (document.visibilityState === "visible") setCatalogTick((tick) => tick + 1); };
+    const timer = setInterval(check, 300000);
+    document.addEventListener("visibilitychange", check);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", check); };
+  }, [available]);
   async function refreshRemote(force) {
     const seq = ++requestSeq.current;
     setRefreshing(true);
@@ -710,7 +725,10 @@ function ModelSeat({
       const researchProvider = force && preferences?.researchModel ? channel || candidates.find((group) => group.id === state.current?.provider)?.id || candidates[0]?.id : null;
       const result = await loadRemote(force, undefined, researchProvider, state.current?.model);
       if (requestSeq.current !== seq) return;
-      if (result.ok) { setRemoteCatalog(result.value); setError(""); }
+      if (result.ok) {
+        if (result.value.capabilitiesChanged) await load();
+        setRemoteCatalog(result.value); setError("");
+      }
       else setError(t("loadFailed"));
     } catch { if (requestSeq.current === seq) setError(t("loadFailed")); }
     finally { if (requestSeq.current === seq) setRefreshing(false); }
@@ -771,10 +789,10 @@ function ModelSeat({
       row.group.id === state.current?.provider &&
       row.model.id === state.current.model,
   );
-  if (!current && nativeState.current) {
-    const group = nativeState.groups.find((g) => g.id === nativeState.current.provider);
-    const model = group?.models.find((m) => m.id === nativeState.current.model);
-    if (group && model) current = { group, model: { id: model.id, name: model.name }, info: metadataOf(group, model, preferences, hostSettings), unlisted: true };
+  if ((!current || current.model.researchEligible === false) && nativeState.current) {
+    const missing = missingSelection(nativeState.current, nativeState.groups);
+    missing.group = { ...missing.group, kind: providerKind(missing.group.id, undefined, preferences?.providerKinds?.[missing.group.id]) ?? missing.group.kind };
+    current = { ...missing, info: { ...metadataOf(missing.group, missing.model, preferences, hostSettings), vision: false, reasoning: false } };
   }
   const reasoning = current?.model.reasoning;
   const effectiveEffort = reasoning?.efforts.some((e) => e.id === state.current?.reasoningEffort)
@@ -821,7 +839,11 @@ function ModelSeat({
     try {
       const ready = await prepare(row.group.id, row.model.id, reasoningEffort ?? null);
       if (!ready.ok) throw new Error("prepare failed");
-      if (ready.value.changed) await load();
+      if (ready.value.changed) {
+        await load();
+        const catalog = await loadRemote(false);
+        if (catalog.ok) setRemoteCatalog(catalog.value);
+      }
       const result = await select({
         provider: row.group.id,
         model: row.model.id,
@@ -1101,6 +1123,7 @@ function ModelSeat({
         />
       ) : null}
       {!open && error ? <span className="ma-seat-error" role="alert">{error}</span> : null}
+      {!open && current?.unlisted ? <span className="ma-seat-error" role="status">{t("unlistedCurrent")}</span> : null}
       {open ? createPortal(popup, document.body) : null}
     </span>
   );

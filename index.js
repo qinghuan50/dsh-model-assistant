@@ -207,6 +207,77 @@ ${normalize(plain).slice(0, 6e3)}`;
   }
 };
 
+// src/capabilities.js
+var DEFAULT_EFFORTS = { off: null, low: "low", medium: "medium", high: "high" };
+var MODALITIES = ["text", "image"];
+var clean = (value) => Object.fromEntries(Object.entries(value || {}).filter(([, field]) => field !== void 0));
+var validWires = (value) => value && typeof value === "object" && !Array.isArray(value) && Object.entries(value).some(([key, wire]) => key !== "off" && typeof wire === "string" && wire.length > 0);
+function capabilityPatch(model, configured, api) {
+  const patch = {};
+  const metadata = model.metadata || {};
+  const input = model.input?.filter((value) => MODALITIES.includes(value));
+  if (input?.length) patch.input = input;
+  else if (typeof metadata.vision === "boolean" || typeof metadata.text === "boolean") {
+    const previous = configured.input?.length ? configured.input : ["text"];
+    const next = MODALITIES.filter((value) => {
+      const supported = metadata[value === "image" ? "vision" : "text"];
+      return typeof supported === "boolean" ? supported : previous.includes(value);
+    });
+    if (next.length) patch.input = next;
+  }
+  if (metadata.reasoning === false) patch.reasoningEfforts = false;
+  else if (metadata.reasoning === true) {
+    if (validWires(configured.reasoningEfforts)) patch.reasoningEfforts = { ...configured.reasoningEfforts };
+    else if (validWires(model.wires)) patch.reasoningEfforts = { ...model.wires };
+    else if (["openai-completions", "openai-responses"].includes(api)) patch.reasoningEfforts = { ...DEFAULT_EFFORTS };
+  }
+  return patch;
+}
+function capabilityOperations(entry, profile, advertised, { addModelId, inherited = [], enabled = true } = {}) {
+  const models = Array.isArray(profile?.models) ? profile.models : [];
+  const updates = [];
+  const catalog = new Map(advertised.map((model) => [model.id, model]));
+  let rows = models;
+  if (addModelId && !models.some((model) => model.id === addModelId)) {
+    const model = catalog.get(addModelId);
+    if (!model) throw new Error("MODEL_NOT_ADVERTISED");
+    const base = models.length ? models : inherited.map((model2) => ({ id: model2.id, name: model2.name }));
+    const previous = base.find((row) => row.id === addModelId);
+    rows = previous ? base : [...base, {
+      id: model.id,
+      name: model.name || model.id,
+      ...clean({ contextWindow: model.metadata?.contextWindow, maxTokens: model.metadata?.maxTokens })
+    }];
+  }
+  rows = rows.map((row, index) => {
+    const model = catalog.get(row.id);
+    if (!model || !enabled || addModelId && row.id !== addModelId) return row;
+    const override = clean(profile?.modelOverrides?.[row.id]);
+    const configured = { ...clean(row), ...override };
+    const patch = capabilityPatch(model, configured, profile?.api);
+    const next = { ...row, ...patch };
+    for (const [field, value] of Object.entries(patch)) {
+      if (JSON.stringify(row[field]) !== JSON.stringify(value)) updates.push({ op: "set", path: [...entry.settingsPath, "models", String(index), field], value });
+      if (Object.hasOwn(override, field) && JSON.stringify(override[field]) !== JSON.stringify(value))
+        updates.push({ op: "set", path: [...entry.settingsPath, "modelOverrides", row.id, field], value });
+    }
+    return next;
+  });
+  if (addModelId && !models.some((model) => model.id === addModelId)) {
+    return [{ op: "set", path: [...entry.settingsPath, "models"], value: rows }, ...updates.filter((op) => op.path[entry.settingsPath.length] === "modelOverrides")];
+  }
+  return updates;
+}
+function effectiveCapabilities(info) {
+  const input = info?.inputModalities;
+  return {
+    ...info?.context?.contextWindow ? { contextWindow: info.context.contextWindow } : {},
+    ...info?.defaultMaxTokens ? { maxTokens: info.defaultMaxTokens } : {},
+    ...input?.length ? { text: input.includes("text"), vision: input.includes("image") } : { vision: false },
+    reasoning: !!info?.reasoning?.efforts?.some((effort) => effort.id !== "off")
+  };
+}
+
 // src/provenance.js
 var isOfficialProvider = (provider) => ["deepseek-account", "deepseek-official"].includes(provider);
 function providerKind(provider, entry, override) {
@@ -222,6 +293,13 @@ var number = (...values) => values.find((v) => typeof v === "number" && Number.i
 var capacity = (...values) => values.find((v) => Number.isSafeInteger(v) && v > 0);
 var boolean = (...values) => values.find((v) => typeof v === "boolean");
 var present = (object) => Object.fromEntries(Object.entries(object).filter(([, v]) => v !== void 0));
+var endpointKey = (entry, value) => createHash("sha256").update(JSON.stringify([
+  entry.provider,
+  value?.baseURL ?? entry.baseURL,
+  value?.api,
+  value?.apiKeyEnv ?? entry.apiKeyEnv,
+  value?.headers
+])).digest("hex");
 function modelsUrl(baseURL) {
   const url = new URL(baseURL);
   if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash)
@@ -284,6 +362,7 @@ var ModelDiscovery = class {
     this.pending = /* @__PURE__ */ new Map();
     this.lifetime = new AbortController();
     this.research = new ModelResearch(ctx, this.lifetime.signal);
+    this.syncTail = Promise.resolve();
   }
   dispose() {
     this.lifetime.abort();
@@ -304,6 +383,7 @@ var ModelDiscovery = class {
     const baseURL = value?.baseURL ?? entry.baseURL;
     if (!baseURL) return null;
     const url = modelsUrl(baseURL);
+    const sourceKey = endpointKey(entry, value);
     const signature = createHash("sha256").update(JSON.stringify([entry.provider, url, profile.revision, value?.apiKeyEnv, value?.headers])).digest("hex");
     const cached = this.cache.get(signature);
     if (!force && cached && Date.now() - cached.fetchedAt < 3e5) return { ...cached, cached: true };
@@ -344,7 +424,12 @@ var ModelDiscovery = class {
         await reader.cancel().catch(() => {
         });
       }
-      const result = { models: parseModels(JSON.parse(Buffer.concat(chunks).toString("utf8"))), fetchedAt: Date.now(), cached: false };
+      const result = {
+        models: parseModels(JSON.parse(Buffer.concat(chunks).toString("utf8"))),
+        fetchedAt: Date.now(),
+        cached: false,
+        endpointKey: sourceKey
+      };
       this.cache.set(signature, result);
       this.ctx.logger?.info("model-assistant catalog: channel=%s models=%d elapsedMs=%d", entry.provider, result.models.length, Date.now() - started);
       return result;
@@ -360,47 +445,88 @@ var ModelDiscovery = class {
       this.pending.delete(signature);
     }
   }
-  /** Read directories without inference costs; a UI refresh may research one explicitly named channel. */
+  /** Serialize revision-checked profile edits across providers sharing a settings namespace. */
+  async syncModels(entry, live, modelId) {
+    const operation = this.syncTail.catch(() => {
+    }).then(async () => {
+      this.lifetime.signal.throwIfAborted();
+      const profile = this.profile(entry);
+      if (live.endpointKey !== endpointKey(entry, profile.value)) throw new Error("CONFIGURATION_CHANGED");
+      const enabled = this.research.preferences()?.value?.enabled !== false;
+      const inherited = modelId && !profile.value?.models?.length ? await this.ctx.llm.listModels(entry.provider).catch(() => []) : [];
+      const ops = capabilityOperations(entry, profile.value, live.models, { addModelId: modelId, inherited, enabled });
+      if (!ops.length) return { changed: false };
+      await this.ctx.settings.mutate(entry.settingsNs, ops, profile.revision);
+      return { changed: true };
+    });
+    this.syncTail = operation;
+    return operation;
+  }
+  /** Read the same exact-route controls used by native image admission and reasoning selection. */
+  async localModels(provider) {
+    const rows = await this.ctx.llm.listModels(provider);
+    return Promise.all(rows.map(async (model) => {
+      const info = await this.ctx.llm.resolveModelInfo(provider, model.id).catch(() => model);
+      const effective = effectiveCapabilities(info);
+      return {
+        id: model.id,
+        name: model.name,
+        researchEligible: true,
+        effective,
+        metadata: effective,
+        ...info.reasoning ? { reasoning: info.reasoning } : {}
+      };
+    }));
+  }
+  /** Refresh endpoint facts and synchronize configured capabilities before advertising native controls. */
   async catalog(force = false, researchProvider = null, preferredModel = null) {
     if (typeof force !== "boolean" || !(researchProvider == null || typeof researchProvider === "string") || !(preferredModel == null || typeof preferredModel === "string")) throw new Error("INVALID_REQUEST");
     const directory = this.ctx.llm.listConfigurableProviders();
     const prefs = this.research.preferences()?.value;
     const failures = [];
+    let capabilitiesChanged = false;
     const groups = await Promise.all(this.ctx.llm.listProviders().map(async (provider) => {
-      let local = [];
-      try {
-        local = await this.ctx.llm.listModels(provider.id);
-        local = await Promise.all(local.map(async (m) => {
-          const info = await this.ctx.llm.resolveModelInfo(provider.id, m.id).catch(() => m);
-          const input = info.inputModalities;
-          return { id: m.id, name: m.name, researchEligible: true, ...info.reasoning ? { reasoning: info.reasoning } : {}, metadata: present({
-            contextWindow: capacity(info.context?.contextWindow),
-            text: input?.length ? input.includes("text") : void 0,
-            vision: input?.length ? input.includes("image") : void 0,
-            reasoning: info.reasoning ? true : void 0
-          }) };
-        }));
-      } catch {
-      }
-      const entry = directory.find((e) => e.provider === provider.id);
+      const entry = directory.find((item) => item.provider === provider.id);
       const kind = providerKind(provider.id, entry, prefs?.providerKinds?.[provider.id]);
+      let live, local = [];
       try {
-        const live = entry ? await this.request(entry, force) : null;
-        if (live) {
-          if (live.stale) failures.push({ id: provider.id, code: live.code });
-          const names = new Map(local.map((m) => [m.id, m.name]));
-          return {
-            id: provider.id,
-            name: provider.name,
-            kind,
-            source: live.stale ? "stale" : "live",
-            fetchedAt: live.fetchedAt,
-            cached: live.cached,
-            models: live.models.map(({ wires, input, ...m }) => ({ ...m, name: m.name || names.get(m.id) || m.id, researchEligible: names.has(m.id) }))
-          };
-        }
+        live = entry ? await this.request(entry, force) : null;
       } catch (error) {
         failures.push({ id: provider.id, code: safeError(error) });
+      }
+      if (live?.stale) failures.push({ id: provider.id, code: live.code });
+      if (live && !live.stale && prefs?.enabled !== false) {
+        try {
+          if ((await this.syncModels(entry, live)).changed) capabilitiesChanged = true;
+        } catch (error) {
+          if (error.message === "CONFIGURATION_CHANGED") live = null;
+          failures.push({ id: provider.id, code: "CAPABILITY_SYNC_FAILED" });
+        }
+      }
+      try {
+        local = await this.localModels(provider.id);
+      } catch {
+      }
+      if (live) {
+        const resolved = new Map(local.map((model) => [model.id, model]));
+        return {
+          id: provider.id,
+          name: provider.name,
+          kind,
+          source: live.stale ? "stale" : "live",
+          fetchedAt: live.fetchedAt,
+          cached: live.cached,
+          models: live.models.map(({ wires, input, reasoning, ...model }) => {
+            const host = resolved.get(model.id);
+            return {
+              ...model,
+              name: model.name || host?.name || model.id,
+              effective: host?.effective || effectiveCapabilities(null),
+              researchEligible: !!host,
+              ...host?.reasoning ? { reasoning: host.reasoning } : {}
+            };
+          })
+        };
       }
       return { id: provider.id, name: provider.name, kind, source: "local", models: local };
     }));
@@ -419,40 +545,23 @@ var ModelDiscovery = class {
       const reference = references?.[routeKey(group.id, model.id)];
       if (reference) model.reference = reference;
     }
-    return { version: 2, groups, failures, ...research ? { research } : {} };
+    return { version: 2, groups, failures, capabilitiesChanged, ...research ? { research } : {} };
   }
-  /** Admit only a model advertised by this configured endpoint; preserve all existing model settings. */
+  /** Prepare advertised models even when already configured, so native admission matches the displayed capability. */
   async prepare(provider, modelId, effort) {
     if (typeof provider !== "string" || typeof modelId !== "string" || !(effort === null || typeof effort === "string")) throw new Error("INVALID_REQUEST");
-    const entry = this.ctx.llm.listConfigurableProviders().find((e) => e.provider === provider);
+    const entry = this.ctx.llm.listConfigurableProviders().find((item) => item.provider === provider);
     if (!entry) return { changed: false };
-    const live = await this.request(entry, false);
-    if (!live || live.stale) return { changed: false };
-    const model = live.models.find((m) => m.id === modelId);
-    if (!model) throw new Error("MODEL_NOT_ADVERTISED");
-    if (effort !== null && !model.reasoning?.efforts.some((e) => e.id === effort)) throw new Error("UNSUPPORTED_EFFORT");
-    const profile = this.profile(entry);
-    const resolved = await this.ctx.llm.resolveModelInfo(provider, modelId).catch(() => null);
-    if (resolved && (effort === null || resolved.reasoning?.efforts.some((e) => e.id === effort))) return { changed: false };
-    let rows = Array.isArray(profile.value?.models) ? profile.value.models : [];
-    if (!rows.length) {
-      const inherited = await this.ctx.llm.listModels(provider).catch(() => []);
-      rows = inherited.map((m) => ({ id: m.id, name: m.name }));
+    const live = await this.request(entry, true);
+    if (!live) return { changed: false };
+    if (live.stale) throw new Error("MODEL_LIST_UNAVAILABLE");
+    if (!live.models.some((model) => model.id === modelId)) throw new Error("MODEL_NOT_ADVERTISED");
+    const result = await this.syncModels(entry, live, modelId);
+    if (effort !== null) {
+      const resolved = await this.ctx.llm.resolveModelInfo(provider, modelId);
+      if (!resolved.reasoning?.efforts.some((item) => item.id === effort)) throw new Error("UNSUPPORTED_EFFORT");
     }
-    const previous = rows.find((m) => m.id === modelId);
-    const override = profile.value?.modelOverrides?.[modelId];
-    const existing = previous ? { ...previous, ...override, id: modelId } : void 0;
-    const row = {
-      ...existing || { id: model.id, name: model.name || model.id },
-      ...!existing ? present({ contextWindow: model.metadata.contextWindow, maxTokens: model.metadata.maxTokens, input: model.input?.length ? model.input : void 0 }) : {},
-      ...effort !== null && model.wires ? { reasoningEfforts: model.wires } : {}
-    };
-    const models = existing ? rows.map((m) => m.id === modelId ? row : m) : [...rows, row];
-    const ops = [{ op: "set", path: [...entry.settingsPath, "models"], value: models }];
-    if (override && effort !== null && model.wires)
-      ops.push({ op: "set", path: [...entry.settingsPath, "modelOverrides", modelId, "reasoningEfforts"], value: model.wires });
-    await this.ctx.settings.mutate(entry.settingsNs, ops, profile.revision);
-    return { changed: true };
+    return result;
   }
 };
 function safeError(error) {
@@ -525,7 +634,7 @@ function apply(ctx) {
   ctx.inject(["tools", "modelAssistant"], (child) => {
     child.tools.register({
       name: "model_assistant_catalog",
-      description: "Read configured providers' sanitized native or API model catalog, or prepare one advertised API model for native selection. Web research runs only on explicit UI refresh. Never returns API keys or headers.",
+      description: "Read model catalogs and synchronize configured input/reasoning capabilities while Model Assistant is enabled, or prepare an advertised model for native selection. Web research runs only on explicit UI refresh. Never returns API keys or headers.",
       parameters: {
         type: "object",
         additionalProperties: false,

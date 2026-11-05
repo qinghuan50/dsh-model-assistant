@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-model-assistant",
-  "version": "1.2.1",
+  "version": "1.3.1",
   "private": true,
   "type": "module",
   "description": "Model route badges, metadata filters and independent settings for DeepSeek Harness.",

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { ModelResearch, routeKey } from "./research.js";
+import { capabilityOperations, effectiveCapabilities } from "./capabilities.js";
 import { providerKind, isOfficialProvider } from "./provenance.js";
 export { providerKind } from "./provenance.js";
 
@@ -9,6 +10,9 @@ const number = (...values) => values.find((v) => typeof v === "number" && Number
 const capacity = (...values) => values.find((v) => Number.isSafeInteger(v) && v > 0);
 const boolean = (...values) => values.find((v) => typeof v === "boolean");
 const present = (object) => Object.fromEntries(Object.entries(object).filter(([, v]) => v !== undefined));
+const endpointKey = (entry, value) => createHash("sha256").update(JSON.stringify([
+  entry.provider, value?.baseURL ?? entry.baseURL, value?.api, value?.apiKeyEnv ?? entry.apiKeyEnv, value?.headers,
+])).digest("hex");
 
 /** Append models to the configured API prefix without discarding a gateway's path. */
 export function modelsUrl(baseURL) {
@@ -77,6 +81,7 @@ export class ModelDiscovery {
     this.pending = new Map();
     this.lifetime = new AbortController();
     this.research = new ModelResearch(ctx, this.lifetime.signal);
+    this.syncTail = Promise.resolve();
   }
   dispose() { this.lifetime.abort(); this.cache.clear(); this.pending.clear(); }
   profile(entry) {
@@ -94,6 +99,7 @@ export class ModelDiscovery {
     const baseURL = value?.baseURL ?? entry.baseURL;
     if (!baseURL) return null;
     const url = modelsUrl(baseURL);
+    const sourceKey = endpointKey(entry, value);
     const signature = createHash("sha256").update(JSON.stringify([entry.provider, url, profile.revision, value?.apiKeyEnv, value?.headers])).digest("hex");
     const cached = this.cache.get(signature);
     if (!force && cached && Date.now() - cached.fetchedAt < 300000) return { ...cached, cached: true };
@@ -124,7 +130,8 @@ export class ModelDiscovery {
           chunks.push(Buffer.from(part.value));
         }
       } finally { await reader.cancel().catch(() => {}); }
-      const result = { models: parseModels(JSON.parse(Buffer.concat(chunks).toString("utf8"))), fetchedAt: Date.now(), cached: false };
+      const result = { models: parseModels(JSON.parse(Buffer.concat(chunks).toString("utf8"))), fetchedAt: Date.now(), cached: false,
+        endpointKey: sourceKey };
       this.cache.set(signature, result);
       this.ctx.logger?.info("model-assistant catalog: channel=%s models=%d elapsedMs=%d", entry.provider, result.models.length, Date.now() - started);
       return result;
@@ -136,38 +143,66 @@ export class ModelDiscovery {
       throw error;
     } finally { this.pending.delete(signature); }
   }
-  /** Read directories without inference costs; a UI refresh may research one explicitly named channel. */
+  /** Serialize revision-checked profile edits across providers sharing a settings namespace. */
+  async syncModels(entry, live, modelId) {
+    const operation = this.syncTail.catch(() => {}).then(async () => {
+      this.lifetime.signal.throwIfAborted();
+      const profile = this.profile(entry);
+      // A response from a replaced endpoint must never change the new destination's model controls.
+      if (live.endpointKey !== endpointKey(entry, profile.value)) throw new Error("CONFIGURATION_CHANGED");
+      const enabled = this.research.preferences()?.value?.enabled !== false;
+      const inherited = modelId && !profile.value?.models?.length ? await this.ctx.llm.listModels(entry.provider).catch(() => []) : [];
+      const ops = capabilityOperations(entry, profile.value, live.models, { addModelId: modelId, inherited, enabled });
+      if (!ops.length) return { changed: false };
+      await this.ctx.settings.mutate(entry.settingsNs, ops, profile.revision);
+      return { changed: true };
+    });
+    this.syncTail = operation;
+    return operation;
+  }
+  /** Read the same exact-route controls used by native image admission and reasoning selection. */
+  async localModels(provider) {
+    const rows = await this.ctx.llm.listModels(provider);
+    return Promise.all(rows.map(async (model) => {
+      const info = await this.ctx.llm.resolveModelInfo(provider, model.id).catch(() => model);
+      const effective = effectiveCapabilities(info);
+      return { id: model.id, name: model.name, researchEligible: true, effective, metadata: effective,
+        ...(info.reasoning ? { reasoning: info.reasoning } : {}) };
+    }));
+  }
+  /** Refresh endpoint facts and synchronize configured capabilities before advertising native controls. */
   async catalog(force = false, researchProvider = null, preferredModel = null) {
     if (typeof force !== "boolean" || !(researchProvider == null || typeof researchProvider === "string") || !(preferredModel == null || typeof preferredModel === "string")) throw new Error("INVALID_REQUEST");
     const directory = this.ctx.llm.listConfigurableProviders();
     const prefs = this.research.preferences()?.value;
     const failures = [];
+    let capabilitiesChanged = false;
     const groups = await Promise.all(this.ctx.llm.listProviders().map(async (provider) => {
-      let local = [];
-      try {
-        local = await this.ctx.llm.listModels(provider.id);
-        local = await Promise.all(local.map(async (m) => {
-          const info = await this.ctx.llm.resolveModelInfo(provider.id, m.id).catch(() => m);
-          const input = info.inputModalities;
-          return { id: m.id, name: m.name, researchEligible: true, ...(info.reasoning ? { reasoning: info.reasoning } : {}), metadata: present({
-            contextWindow: capacity(info.context?.contextWindow),
-            text: input?.length ? input.includes("text") : undefined,
-            vision: input?.length ? input.includes("image") : undefined,
-            reasoning: info.reasoning ? true : undefined,
-          }) };
-        }));
-      } catch { /* A working endpoint can still supply the directory when the local catalog is invalid. */ }
-      const entry = directory.find((e) => e.provider === provider.id);
+      const entry = directory.find((item) => item.provider === provider.id);
       const kind = providerKind(provider.id, entry, prefs?.providerKinds?.[provider.id]);
-      try {
-        const live = entry ? await this.request(entry, force) : null;
-        if (live) {
-          if (live.stale) failures.push({ id: provider.id, code: live.code });
-          const names = new Map(local.map((m) => [m.id, m.name]));
-          return { id: provider.id, name: provider.name, kind, source: live.stale ? "stale" : "live", fetchedAt: live.fetchedAt, cached: live.cached,
-            models: live.models.map(({ wires, input, ...m }) => ({ ...m, name: m.name || names.get(m.id) || m.id, researchEligible: names.has(m.id) })) };
+      let live, local = [];
+      try { live = entry ? await this.request(entry, force) : null; }
+      catch (error) { failures.push({ id: provider.id, code: safeError(error) }); }
+      if (live?.stale) failures.push({ id: provider.id, code: live.code });
+      if (live && !live.stale && prefs?.enabled !== false) {
+        try { if ((await this.syncModels(entry, live)).changed) capabilitiesChanged = true; }
+        catch (error) {
+          if (error.message === "CONFIGURATION_CHANGED") live = null;
+          failures.push({ id: provider.id, code: "CAPABILITY_SYNC_FAILED" });
         }
-      } catch (error) { failures.push({ id: provider.id, code: safeError(error) }); }
+      }
+      try { local = await this.localModels(provider.id); }
+      catch { /* A working endpoint can still advertise models that have not been selected yet. */ }
+      if (live) {
+        const resolved = new Map(local.map((model) => [model.id, model]));
+        return { id: provider.id, name: provider.name, kind, source: live.stale ? "stale" : "live", fetchedAt: live.fetchedAt, cached: live.cached,
+          models: live.models.map(({ wires, input, reasoning, ...model }) => {
+            const host = resolved.get(model.id);
+            return { ...model, name: model.name || host?.name || model.id,
+              effective: host?.effective || effectiveCapabilities(null), researchEligible: !!host,
+              ...(host?.reasoning ? { reasoning: host.reasoning } : {}) };
+          }) };
+      }
       return { id: provider.id, name: provider.name, kind, source: "local", models: local };
     }));
     let research;
@@ -182,40 +217,26 @@ export class ModelDiscovery {
       const reference = references?.[routeKey(group.id, model.id)];
       if (reference) model.reference = reference;
     }
-    return { version: 2, groups, failures, ...(research ? { research } : {}) };
+    return { version: 2, groups, failures, capabilitiesChanged, ...(research ? { research } : {}) };
   }
-  /** Admit only a model advertised by this configured endpoint; preserve all existing model settings. */
+  /** Prepare advertised models even when already configured, so native admission matches the displayed capability. */
   async prepare(provider, modelId, effort) {
     if (typeof provider !== "string" || typeof modelId !== "string" || !(effort === null || typeof effort === "string")) throw new Error("INVALID_REQUEST");
-    const entry = this.ctx.llm.listConfigurableProviders().find((e) => e.provider === provider);
+    const entry = this.ctx.llm.listConfigurableProviders().find((item) => item.provider === provider);
     if (!entry) return { changed: false };
-    const live = await this.request(entry, false);
-    if (!live || live.stale) return { changed: false };
-    const model = live.models.find((m) => m.id === modelId);
-    if (!model) throw new Error("MODEL_NOT_ADVERTISED");
-    if (effort !== null && !model.reasoning?.efforts.some((e) => e.id === effort)) throw new Error("UNSUPPORTED_EFFORT");
-    const profile = this.profile(entry);
-    const resolved = await this.ctx.llm.resolveModelInfo(provider, modelId).catch(() => null);
-    if (resolved && (effort === null || resolved.reasoning?.efforts.some((e) => e.id === effort))) return { changed: false };
-    let rows = Array.isArray(profile.value?.models) ? profile.value.models : [];
-    if (!rows.length) {
-      const inherited = await this.ctx.llm.listModels(provider).catch(() => []);
-      rows = inherited.map((m) => ({ id: m.id, name: m.name }));
+    // Validate membership again at selection: a model may have been delisted since the menu's cached read.
+    const live = await this.request(entry, true);
+    if (!live) return { changed: false };
+    if (live.stale) throw new Error("MODEL_LIST_UNAVAILABLE");
+    if (!live.models.some((model) => model.id === modelId)) throw new Error("MODEL_NOT_ADVERTISED");
+    const result = await this.syncModels(entry, live, modelId);
+    if (effort !== null) {
+      const resolved = await this.ctx.llm.resolveModelInfo(provider, modelId);
+      if (!resolved.reasoning?.efforts.some((item) => item.id === effort)) throw new Error("UNSUPPORTED_EFFORT");
     }
-    const previous = rows.find((m) => m.id === modelId);
-    const override = profile.value?.modelOverrides?.[modelId];
-    const existing = previous ? { ...previous, ...override, id: modelId } : undefined;
-    const row = { ...(existing || { id: model.id, name: model.name || model.id }),
-      ...(!existing ? present({ contextWindow: model.metadata.contextWindow, maxTokens: model.metadata.maxTokens, input: model.input?.length ? model.input : undefined }) : {}),
-      ...(effort !== null && model.wires ? { reasoningEfforts: model.wires } : {}),
-    };
-    const models = existing ? rows.map((m) => m.id === modelId ? row : m) : [...rows, row];
-    const ops = [{ op: "set", path: [...entry.settingsPath, "models"], value: models }];
-    if (override && effort !== null && model.wires)
-      ops.push({ op: "set", path: [...entry.settingsPath, "modelOverrides", modelId, "reasoningEfforts"], value: model.wires });
-    await this.ctx.settings.mutate(entry.settingsNs, ops, profile.revision);
-    return { changed: true };
+    return result;
   }
+
 }
 function safeError(error) {
   return /^(HTTP_\d{3}|INVALID_ENDPOINT|INVALID_MODEL_LIST|MISSING_CREDENTIAL|INVALID_CREDENTIAL_REFERENCE|REPLY_TOO_LARGE)$/.test(error?.message)
