@@ -17,8 +17,57 @@ permissions:
   contents: write
 
 jobs:
+  compatibility:
+    name: Check Harness ${{ matrix.harness }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - harness: 0.2.1-rc.5
+            node: 22
+          - harness: 0.2.2-rc.1
+            node: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build && npm run check
+      - name: Check packed plugin with matching host protocol
+        env:
+          HARNESS_VERSION: ${{ matrix.harness }}
+        run: |
+          package_file=$(npm pack --silent --pack-destination "$RUNNER_TEMP")
+          smoke_dir=$(mktemp -d "$RUNNER_TEMP/model-assistant-compat.XXXXXX")
+          cd "$smoke_dir"
+          npm init -y > /dev/null
+          npm install --omit=dev --ignore-scripts --no-audit --no-fund \
+            "@deepseek-ai/dsh-typert-protocol@$HARNESS_VERSION" "$RUNNER_TEMP/$package_file"
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { Context } from '@deepseek-ai/cordis';
+          import { remoteMethods } from '@deepseek-ai/dsh-typert-protocol';
+          import * as plugin from '@local/dsh-model-assistant';
+          const ctx = new Context();
+          ctx.provide('settings', { configure: () => () => {}, describe: () => [] });
+          ctx.provide('credentials', { resolve: async () => { throw new Error('Unexpected credential access'); } });
+          ctx.provide('llm', { listConfigurableProviders: () => [], listProviders: () => [] });
+          const fiber = ctx.plugin(plugin);
+          await fiber;
+          const service = ctx.get('modelAssistant');
+          assert.equal(service.typertRemote.namespace, 'modelAssistant');
+          assert.deepEqual(remoteMethods(service).map(marker => marker.method).sort(), ['catalog', 'prepare', 'refreshReferences']);
+          assert.deepEqual((await service.catalog(false)).groups, []);
+          await fiber.dispose();
+          assert.equal(ctx.get('modelAssistant'), undefined);
+          await ctx.fiber.dispose();
+          JS
+
   build-and-pack:
     name: Build & Package Plugin
+    needs: compatibility
     runs-on: ubuntu-latest
 
     steps:

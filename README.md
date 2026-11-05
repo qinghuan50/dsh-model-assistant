@@ -1,12 +1,12 @@
 # 模型助手 · DeepSeek Harness 插件
 
-适配 DeepSeek Harness `0.2.1-rc.5`，通过 Cordis Slot 与宿主配置服务扩展界面，不修改应用安装包。macOS 已实测；Windows 的 1.2.1 基本使用已由用户反馈实机验证，1.3.1 能力与目录同步仍待 Windows 复测。
+同一个插件包兼容 DeepSeek Harness `0.2.1-rc.5` 与 `0.2.2-rc.1`，通过 Cordis Slot 与宿主配置服务扩展界面，不修改应用安装包。Mac 可以继续使用旧宿主，Windows 可以使用新宿主，无需两端同时升级。macOS 旧宿主已实测；两版官方协议库、Cordis 和 Slot 注册均通过隔离验证，Windows 新宿主的实际界面仍待复测。
 
 ## Windows 快速安装
 
 仓库已包含构建产物 `index.js` 与 `client.js`，无需自行编译源码。
 
-1. 确认 Windows 上的 Harness 版本为 `0.2.1-rc.5`。
+1. 确认 Windows 上的 Harness 版本为 `0.2.1-rc.5` 或 `0.2.2-rc.1`。
 2. 在 Harness 打开「插件 → 添加插件」，粘贴以下仓库地址并安装，然后点击「立即启用」。
 
 ```text
@@ -18,6 +18,8 @@ https://github.com/qinghuan50/dsh-model-assistant.git
 安装后可验证：侧栏「模型助手」打开独立设置页；聊天框模型列表能刷新并显示真实容量、厂商和能力；未提供等级时为 `default`；切换模型后底部徽章同步；关闭功能恢复原生选择器。刷新与选模无需发送聊天消息。
 
 本地目录重新构建后需重启 Harness，确保 Host 与 Client 都加载最新代码；仅更新前端文件可能仍使用内存中的旧后端。目录 RPC 保持兼容旧版；未重载后端时联网补全会提示重新加载，不会使目录刷新失败。已有同名插件时，按宿主提示卸载旧版再安装；需要保留的手填资料请先记录。反馈 Windows 问题时附上 Harness 版本、错误码及相关界面即可。
+
+插件 `1.3.2` 起明确声明同时支持上述两个宿主版本，并通过 peer dependency 复用宿主对应版本的 `dsh-typert-protocol`，避免把旧 Cordis 依赖带入新宿主。本地开发依赖仍固定在 `0.2.1-rc.5`，保留旧版构建基线；GitHub Actions 分别使用两版协议库验证安装包的服务注册、RPC 元数据、目录读取和卸载，再生成打包产物。尚未核验的其他宿主版本不会自动放行。
 
 ## 使用
 
@@ -74,7 +76,7 @@ npm run check
 
 在 Harness 插件管理器添加本地插件时，使用本目录绝对路径。本地目录安装会链接该目录，请保留目录及依赖。普通使用可直接填写上述 GitHub 仓库地址。
 
-打包文件包含 Host、Client、补丁、中文/英文展示资料及原创 SVG 图标，无安装脚本。运行依赖为 `@deepseek-ai/schemastery@3.18.5` 与 `@deepseek-ai/dsh-typert-protocol@0.2.1-rc.5`。模型目录仅向已配置的接口发出 GET 请求，每次限制 15 秒、8 MiB 响应；显式启用联网补全后，通过宿主搜索、抓取与 LLM 服务调用。日志仅记录渠道、数量、脱敏状态和耗时。
+打包文件包含 Host、Client、补丁、中文/英文展示资料及原创 SVG 图标，无安装脚本。运行依赖为 `@deepseek-ai/schemastery@3.18.5`；`@deepseek-ai/dsh-typert-protocol` 由宿主提供，接受 `0.2.1-rc.5` 或 `0.2.2-rc.1`。模型目录仅向已配置的接口发出 GET 请求，每次限制 15 秒、8 MiB 响应；显式启用联网补全后，通过宿主搜索、抓取与 LLM 服务调用。日志仅记录渠道、数量、脱敏状态和耗时。
 
 宿主同时提供 `model_assistant_catalog` 工具，复用与 UI 相同的读取和选模准备方法。工具返回经过字段白名单处理的资料；模型名等远端文本仍应作为外部数据看待。
 
