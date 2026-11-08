@@ -304,14 +304,22 @@ function metadataOf(group, model, prefs, hostDocument) {
   info.outputSource = model.effective?.maxTokens !== undefined ? "sourceHost" : model.metadata?.maxTokens !== undefined ? (group.source === "local" ? "sourceNative" : info.source) : manual.maxTokens !== undefined ? "sourceManual" : configured?.maxTokens !== undefined ? "sourceHost" : web.maxTokens !== undefined ? webSource : "sourceUnknown";
   return info;
 }
-function RouteBadges({ group, info, t }) {
+function RouteBadges({ group, info, t, compact = false }) {
   if (group.kind === "official") return <span className="ma-badges"><span className="ma-badge ma-official" title={`${t("official")} · ${group.name}`}>{t("official")}</span></span>;
+  const supplier = info.supplier || t("unknownSupplier");
+  if (compact) return (
+    <span className="ma-badges ma-route-compact">
+      <span className="ma-badge ma-channel" title={`${group.name} · ${supplier}\n${group.id}${group.kind ? ` · ${t(group.kind)}` : ""}`}>
+        {group.name} · {supplier}
+      </span>
+    </span>
+  );
   return (
     <span className="ma-badges">
       <span className="ma-badge ma-channel" title={group.id}>
         {group.name}{group.kind ? ` · ${t(group.kind)}` : ""}
       </span>
-      <span className="ma-badge">{info.supplier || t("unknownSupplier")}</span>
+      <span className="ma-badge">{supplier}</span>
     </span>
   );
 }
@@ -1103,10 +1111,10 @@ function ModelSeat({
           setOpen((value) => !value);
         }}
       >
-        <span>{current?.model.name || t("select")}</span>
+        <span title={current?.model.name}>{current?.model.name || t("select")}</span>
         {current ? (
           <>
-            <RouteBadges group={current.group} info={current.info} t={t} />
+            <RouteBadges group={current.group} info={current.info} t={t} compact />
             <Capabilities info={current.info} t={t} icons />
           </>
         ) : null}

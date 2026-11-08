@@ -115,8 +115,11 @@
   align-items: center;
   gap: 4px;
   min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
 }
 .ma-effort-compact {
+  flex-shrink: 0;
   max-width: 125px;
   height: 28px;
   background: none;
@@ -132,7 +135,7 @@
 .ma-effort-compact:disabled { opacity: 0.55; cursor: default; }
 .ma-seat-error { color: var(--dsw-alias-state-error-primary); font-size: 11px; }
 .ma-trigger {
-  max-width: min(530px, 55cqw);
+  max-width: min(440px, 46cqw);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -152,6 +155,17 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.ma-trigger > svg {
+  flex-shrink: 0;
+}
+.ma-trigger .ma-route-compact {
+  min-width: 0;
+  flex-shrink: 1;
+}
+.ma-trigger .ma-route-compact .ma-badge {
+  max-width: 180px;
+  white-space: nowrap;
 }
 .ma-trigger:hover {
   background: var(--dsw-alias-interactive-bg-hover);
@@ -488,8 +502,8 @@
   .ma-badge {
     max-width: 110px;
   }
-  .ma-trigger .ma-badge {
-    max-width: 90px;
+  .ma-trigger .ma-route-compact .ma-badge {
+    max-width: 150px;
   }
 }
 @media (max-width: 650px) {
@@ -551,7 +565,7 @@
     font-size: 11px;
   }
   .ma-trigger {
-    max-width: 65cqw;
+    max-width: 46cqw;
     font-size: 12px;
     gap: 5px;
   }
