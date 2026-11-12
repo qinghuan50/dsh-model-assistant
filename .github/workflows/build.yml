@@ -27,6 +27,8 @@ jobs:
             node: 22
           - harness: 0.2.2-rc.1
             node: 24
+          - harness: 0.2.2-rc.2
+            node: 24
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
