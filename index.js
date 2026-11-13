@@ -215,6 +215,8 @@ var validWires = (value) => value && typeof value === "object" && !Array.isArray
 function capabilityPatch(model, configured, api) {
   const patch = {};
   const metadata = model.metadata || {};
+  if (Number.isSafeInteger(metadata.contextWindow) && metadata.contextWindow > 0)
+    patch.contextWindow = metadata.contextWindow;
   const input = model.input?.filter((value) => MODALITIES.includes(value));
   if (input?.length) patch.input = input;
   else if (typeof metadata.vision === "boolean" || typeof metadata.text === "boolean") {
@@ -634,7 +636,7 @@ function apply(ctx) {
   ctx.inject(["tools", "modelAssistant"], (child) => {
     child.tools.register({
       name: "model_assistant_catalog",
-      description: "Read model catalogs and synchronize configured input/reasoning capabilities while Model Assistant is enabled, or prepare an advertised model for native selection. Web research runs only on explicit UI refresh. Never returns API keys or headers.",
+      description: "Read model catalogs and synchronize configured context/input/reasoning capabilities while Model Assistant is enabled, or prepare an advertised model for native selection. Web research runs only on explicit UI refresh. Never returns API keys or headers.",
       parameters: {
         type: "object",
         additionalProperties: false,

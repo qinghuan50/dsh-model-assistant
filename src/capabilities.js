@@ -3,10 +3,13 @@ const MODALITIES = ["text", "image"];
 const clean = (value) => Object.fromEntries(Object.entries(value || {}).filter(([, field]) => field !== undefined));
 const validWires = (value) => value && typeof value === "object" && !Array.isArray(value) && Object.entries(value).some(([key, wire]) => key !== "off" && typeof wire === "string" && wire.length > 0);
 
-/** Match the host's input checkboxes and reasoning switch using endpoint facts, never web/manual references. */
+/** Synchronize native context, input and reasoning controls from endpoint facts, never web/manual references. */
 export function capabilityPatch(model, configured, api) {
   const patch = {};
   const metadata = model.metadata || {};
+  // Existing custom rows otherwise retain the host's generic 1M fallback, regardless of the selected model.
+  if (Number.isSafeInteger(metadata.contextWindow) && metadata.contextWindow > 0)
+    patch.contextWindow = metadata.contextWindow;
   const input = model.input?.filter((value) => MODALITIES.includes(value));
   if (input?.length) patch.input = input;
   else if (typeof metadata.vision === "boolean" || typeof metadata.text === "boolean") {

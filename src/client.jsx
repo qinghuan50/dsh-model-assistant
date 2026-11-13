@@ -10,9 +10,34 @@ import css from "./styles.css";
 import { providerKind } from "./provenance.js";
 import { loadCatalogRPC } from "./transport.js";
 import { directoryVersion, reconcileDirectory, missingSelection } from "./directory.js";
+import { EMPTY_FILTERS, readPickerFilters, savePickerFilters } from "./filters.js";
 
 const NS = "local-model-assistant";
 const PANEL = "local-model-assistant";
+const NATIVE_OPTIONS = "conversation.input.model.options";
+const TEAM_OPTIONS = "local-model-assistant.model.options";
+
+/** Reuse the host's Team control through our own child slot: native declarations have a single owner. */
+function mountTeamOptions(ctx) {
+  return ctx.slots.inject(NATIVE_OPTIONS, () => {
+    let source, remove;
+    const sync = () => {
+      const next = ctx.slots.entriesOfSlot(NATIVE_OPTIONS).find((entry) => entry.options.id === "agent-team");
+      if (source === next) return;
+      remove?.();
+      remove = undefined;
+      source = next;
+      if (next) remove = ctx.slots.register({
+        ...next.options, name: TEAM_OPTIONS,
+        locale: next.locale, inject: next.inject,
+        ...(next.store ? { store: next.store } : {}),
+      }, next.component);
+    };
+    const unsubscribe = ctx.slots.subscribe(NATIVE_OPTIONS, sync);
+    sync();
+    return () => { unsubscribe(); remove?.(); };
+  });
+}
 class ViewBoundary extends React.Component {
   state = { error: null };
   static getDerivedStateFromError(error) {
@@ -34,7 +59,7 @@ const dictionaries = {
     intro: "管理聊天框中的模型信息展示与筛选功能。",
     back: "返回对话",
     enabled: "启用模型助手",
-    enabledHint: "同步已配置模型的输入类型和推理等级，并按生效能力展示与筛选。",
+    enabledHint: "同步接口声明的上下文容量、输入类型和推理等级，并按生效能力展示与筛选。",
     sidebar: "在侧栏显示入口",
     sidebarHint: "隐藏后仍可从设置中的「模型助手」进入。",
     saved: "设置自动保存。关闭功能后使用宿主原有模型选择器。",
@@ -115,7 +140,7 @@ const dictionaries = {
     back: "Back to chat",
     enabled: "Enable Model Assistant",
     enabledHint:
-      "Show channel, supplier, context, multipliers and capabilities with filters.",
+      "Synchronize advertised context capacity, input and reasoning capabilities, then display and filter effective capabilities.",
     sidebar: "Show sidebar entry",
     sidebarHint: "If hidden, open Model Assistant from Settings.",
     saved:
@@ -671,6 +696,7 @@ function ModelSeat({
   loadRemote,
   prepare,
   select,
+  renderSlot,
   t,
 }) {
   const nativeState = useDirectory((s) => s),
@@ -678,14 +704,12 @@ function ModelSeat({
     hostSettings = useHostSettings((s) => s);
   const [open, setOpen] = useState(false),
     [query, setQuery] = useState(""),
-    [channel, setChannel] = useState(""),
-    [kind, setKind] = useState(""),
-    [supplier, setSupplier] = useState(""),
-    [capability, setCapability] = useState(""),
-    [minContext, setMinContext] = useState(""),
     [error, setError] = useState(""),
     [position, setPosition] = useState(null),
     [active, setActive] = useState(-1);
+  const [filters, setFilters] = useState(readPickerFilters);
+  const { channel, kind, supplier, capability, minContext } = filters;
+  useEffect(() => { savePickerFilters(filters); }, [filters]);
   const [remoteCatalog, setRemoteCatalog] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [preparing, setPreparing] = useState(false);
@@ -842,15 +866,22 @@ function ModelSeat({
           : same
             ? effectiveEffort
             : row.model.reasoning?.defaultEffort;
+    if (same && (reasoningEffort ?? null) === (effectiveEffort ?? null)) {
+      close();
+      return;
+    }
     setError("");
     setPreparing(true);
     try {
-      const ready = await prepare(row.group.id, row.model.id, reasoningEffort ?? null);
-      if (!ready.ok) throw new Error("prepare failed");
-      if (ready.value.changed) {
-        await load();
-        const catalog = await loadRemote(false);
-        if (catalog.ok) setRemoteCatalog(catalog.value);
+      // Effort-only changes reuse the configured route and native validation; do not wait for /models.
+      if (!same) {
+        const ready = await prepare(row.group.id, row.model.id, reasoningEffort ?? null);
+        if (!ready.ok) throw new Error("prepare failed");
+        if (ready.value.changed) {
+          await load();
+          const catalog = await loadRemote(false);
+          if (catalog.ok) setRemoteCatalog(catalog.value);
+        }
       }
       const result = await select({
         provider: row.group.id,
@@ -869,7 +900,7 @@ function ModelSeat({
       e.stopPropagation();
       close();
     }
-    if (e.target.tagName === "SELECT") return;
+    if (e.target.tagName === "SELECT" || e.target.closest(".ma-native-options")) return;
     if (["ArrowDown", "ArrowUp"].includes(e.key) && filtered.length) {
       e.preventDefault();
       const n =
@@ -889,13 +920,10 @@ function ModelSeat({
       choose(filtered[Math.max(0, active)] || filtered[0]);
     }
   }
+  const updateFilters = (patch) => setFilters((previous) => ({ ...previous, ...patch }));
   const reset = () => {
     setQuery("");
-    setChannel("");
-    setKind("");
-    setSupplier("");
-    setCapability("");
-    setMinContext("");
+    setFilters(EMPTY_FILTERS);
   };
   const ratio = (n) => (knownNumber(n) ? `×${n}` : t("unknown"));
   const popup = (
@@ -935,14 +963,14 @@ function ModelSeat({
         <button className="ma-text-button" disabled={refreshing || busy} onClick={() => refreshRemote(true)}>
           {refreshing ? t("loading") : t("refresh")}
         </button>
-        <select aria-label={t("kinds")} value={kind} onChange={(e) => { setKind(e.target.value); setChannel(""); setSupplier(""); }}>
+        <select aria-label={t("kinds")} value={kind} onChange={(e) => updateFilters({ kind: e.target.value, channel: "", supplier: "" })}>
           <option value="">{t("kinds")}</option>
           {["official", "thirdParty", "custom"].map((value) => <option key={value} value={value}>{t(value)}</option>)}
         </select>
         {hasChannels ? <select
           aria-label={t("channels")}
           value={channel}
-          onChange={(e) => setChannel(e.target.value)}
+          onChange={(e) => updateFilters({ channel: e.target.value })}
         >
           <option value="">{t("channels")}</option>
           {state.groups.filter((group) => group.kind !== "official").map((group) => (
@@ -954,7 +982,7 @@ function ModelSeat({
         {hasChannels ? <select
           aria-label={t("suppliers")}
           value={supplier}
-          onChange={(e) => setSupplier(e.target.value)}
+          onChange={(e) => updateFilters({ supplier: e.target.value })}
         >
           <option value="">{t("suppliers")}</option>
           {[...new Set(all.filter((row) => row.group.kind !== "official").map((row) => row.info.supplier || "__unknown"))].map(
@@ -968,7 +996,7 @@ function ModelSeat({
         <select
           aria-label={t("capability")}
           value={capability}
-          onChange={(e) => setCapability(e.target.value)}
+          onChange={(e) => updateFilters({ capability: e.target.value })}
         >
           <option value="">{t("capability")}</option>
           {["text", "reasoning", "tools", "vision", "streaming"].map((key) => (
@@ -980,7 +1008,7 @@ function ModelSeat({
         <select
           aria-label={t("context")}
           value={minContext}
-          onChange={(e) => setMinContext(e.target.value)}
+          onChange={(e) => updateFilters({ minContext: e.target.value })}
         >
           <option value="">{t("context")}</option>
           {[64000, 128000, 1000000].map((value) => (
@@ -1081,6 +1109,13 @@ function ModelSeat({
           </div>
         </div>
       ) : null}
+      {renderSlot ? <div className="ma-native-options">
+        {renderSlot(TEAM_OPTIONS, {
+          locked: locked || busy,
+          dismiss: close,
+          reportFailure: setError,
+        })}
+      </div> : null}
       {remoteCatalog?.failures.length ? <p className="ma-effort ma-effort-note" role="status">{t("fallbackCatalog")} {remoteCatalog.failures.map((f) => `${f.id}: ${f.code}`).join(" · ")}</p> : null}
       {remoteCatalog?.research ? <p className="ma-effort ma-effort-note" role="status">
         {remoteCatalog.research.code === "HOST_RELOAD_REQUIRED" ? t("hostReload") : remoteCatalog.research.code ? `${t("researchUnavailable")} (${remoteCatalog.research.code})`
@@ -1104,7 +1139,7 @@ function ModelSeat({
         aria-expanded={open}
         onClick={() => {
           if (!open) {
-            reset();
+            setQuery("");
             setPosition(null);
             if (!refreshing) refreshRemote(false);
           }
@@ -1220,12 +1255,13 @@ export function apply(ctx) {
       removeSidebar = undefined;
     }
     if (prefs.enabled && !removeSeat)
-      removeSeat = ctx.slots.inject("conversation.input.model", () =>
-        ctx.slots.register(
+      removeSeat = ctx.slots.inject("conversation.input.model", function* () {
+        yield ctx.slots.register(
           {
             name: "conversation.input.model",
             priority: -100,
             locale: NS,
+            children: { [TEAM_OPTIONS]: { kind: "list", scope: "session" } },
             inject: (sessionId) => {
               const directory = ctx.modelDirectories.directoryFor(sessionId);
               return {
@@ -1244,8 +1280,9 @@ export function apply(ctx) {
             },
           },
           ModelSeat,
-        ),
-      );
+        );
+        yield mountTeamOptions(ctx);
+      });
     if (!prefs.enabled && removeSeat) {
       removeSeat();
       removeSeat = undefined;

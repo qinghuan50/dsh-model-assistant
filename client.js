@@ -38,7 +38,7 @@ var import_react = __toESM(require("react"), 1);
 var import_react_dom = require("react-dom");
 
 // src/styles.css
-var styles_default = '.ma-page {\n  box-sizing: border-box;\n  height: 100%;\n  overflow: auto;\n  color: var(--dsw-alias-label-primary);\n  padding: calc(28px + var(--dsh-frame-top-clearance, 0px))\n    clamp(20px, 4vw, 48px) 48px;\n  font-size: 13px;\n}\n.ma-page-content {\n  max-width: 780px;\n  margin: 0 auto;\n}\n.ma-page h1 {\n  font-size: 22px;\n  font-weight: 500;\n  line-height: 30px;\n  margin: 24px 0 10px;\n}\n.ma-intro,\n.ma-note {\n  color: var(--dsw-alias-label-tertiary);\n  line-height: 1.7;\n}\n.ma-note {\n  font-size: 12px;\n  margin-top: 18px;\n}\n.ma-back {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  cursor: pointer;\n  padding: 4px 0;\n  font: inherit;\n}\n.ma-settings {\n  margin-top: 28px;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 16px;\n}\n.ma-setting-row {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 24px;\n  padding: 24px;\n}\n.ma-setting-row + .ma-setting-row {\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n}\n.ma-setting-row > div {\n  min-width: 0;\n}\n.ma-setting-row > div > span {\n  font-size: 14px;\n  font-weight: 500;\n}\n.ma-setting-row p {\n  font-size: 12px;\n  line-height: 1.7;\n  margin: 8px 0 0;\n  color: var(--dsw-alias-label-tertiary);\n}\n.ma-switch {\n  width: 42px;\n  height: 24px;\n  padding: 2px;\n  border: 0;\n  border-radius: 24px;\n  display: flex;\n  align-items: center;\n  flex-shrink: 0;\n  background: var(--dsw-alias-interactive-bg-hover);\n  cursor: pointer;\n}\n.ma-switch > span {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  background: var(--dsw-alias-label-secondary);\n  transition: transform 0.15s;\n}\n.ma-switch[aria-checked="true"] {\n  background: var(--dsw-alias-state-business-primary);\n}\n.ma-switch[aria-checked="true"] > span {\n  transform: translateX(18px);\n  background: var(--dsw-alias-label-primary-foreground);\n}\n.ma-page button:disabled,\n.ma-menu button:disabled {\n  opacity: 0.55;\n  cursor: default;\n}\n.ma-page button:focus-visible,\n.ma-page input:focus-visible,\n.ma-page select:focus-visible,\n.ma-menu button:focus-visible,\n.ma-menu input:focus-visible,\n.ma-menu select:focus-visible,\n.ma-trigger:focus-visible {\n  outline: 2px solid var(--dsw-alias-state-business-primary);\n  outline-offset: 2px;\n}\n.ma-effort-compact:focus-visible {\n  outline: 2px solid var(--dsw-alias-state-business-primary);\n  outline-offset: 2px;\n}\n.ma-seat {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  min-width: 0;\n  max-width: 100%;\n  white-space: nowrap;\n}\n.ma-effort-compact {\n  flex-shrink: 0;\n  max-width: 125px;\n  height: 28px;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  border: 0;\n  border-radius: 6px;\n  padding: 2px 4px;\n  font: inherit;\n  font-size: 12px;\n  cursor: pointer;\n}\n.ma-effort-compact:hover { background: var(--dsw-alias-interactive-bg-hover); }\n.ma-effort-compact:disabled { opacity: 0.55; cursor: default; }\n.ma-seat-error { color: var(--dsw-alias-state-error-primary); font-size: 11px; }\n.ma-trigger {\n  max-width: min(440px, 46cqw);\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  min-width: 0;\n  padding: 2px 4px 2px 8px;\n  border: 0;\n  border-radius: 6px;\n  height: 28px;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  font: inherit;\n  font-size: 13px;\n  cursor: pointer;\n  white-space: nowrap;\n}\n.ma-trigger > span:first-child {\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n.ma-trigger > svg {\n  flex-shrink: 0;\n}\n.ma-trigger .ma-route-compact {\n  min-width: 0;\n  flex-shrink: 1;\n}\n.ma-trigger .ma-route-compact .ma-badge {\n  max-width: 180px;\n  white-space: nowrap;\n}\n.ma-trigger:hover {\n  background: var(--dsw-alias-interactive-bg-hover);\n}\n.ma-trigger:disabled {\n  opacity: 0.55;\n  cursor: default;\n}\n.ma-badges {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  white-space: nowrap;\n  flex-shrink: 0;\n}\n.ma-badge {\n  border: 0.5px solid var(--dsw-alias-border-l3);\n  background: var(--dsw-alias-bg-module-platform);\n  color: var(--dsw-alias-label-secondary);\n  border-radius: 5px;\n  padding: 1px 6px;\n  font-size: 11px;\n  line-height: 17px;\n  max-width: 150px;\n  text-overflow: ellipsis;\n  overflow: hidden;\n}\n.ma-channel {\n  color: var(--dsw-alias-state-business-primary);\n  border-color: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 40%,\n    transparent\n  );\n  background: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 6%,\n    var(--dsw-alias-bg-base)\n  );\n}\n.ma-cap-icons {\n  display: inline-flex;\n  align-items: center;\n  gap: 7px;\n  flex-shrink: 0;\n  color: var(--dsw-alias-label-caption);\n}\n.ma-menu {\n  box-sizing: border-box;\n  position: fixed;\n  z-index: 1200;\n  display: flex;\n  flex-direction: column;\n  width: min(900px, calc(100vw - 24px));\n  max-height: calc(100dvh - 32px);\n  padding: 16px 10px 0;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 16px;\n  box-shadow: var(--dsw-elevation-prominent);\n  font-size: 13px;\n  line-height: 1.5;\n}\n.ma-search {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin: 0 8px;\n  background: var(--dsw-alias-bg-module-platform);\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 9px;\n  padding: 8px 11px;\n  color: var(--dsw-alias-label-tertiary);\n  flex-shrink: 0;\n}\n.ma-search input {\n  min-width: 0;\n  flex: 1;\n  outline: 0 !important;\n  border: 0;\n  padding: 0;\n  background: none;\n  color: var(--dsw-alias-label-primary);\n  font: inherit;\n}\n.ma-search button {\n  padding: 0;\n  background: none;\n  border: 0;\n  color: inherit;\n  display: flex;\n  align-items: center;\n  cursor: pointer;\n}\n.ma-filters {\n  display: flex;\n  align-items: center;\n  gap: 9px;\n  flex-wrap: wrap;\n  padding: 15px 8px 17px;\n  flex-shrink: 0;\n}\n.ma-filters select {\n  max-width: 180px;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 18px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  font: inherit;\n  padding: 5px 12px;\n  cursor: pointer;\n}\n.ma-table-head,\n.ma-row {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) 125px 125px 140px 20px;\n  gap: 12px;\n  align-items: center;\n  padding: 10px 16px;\n}\n.ma-table-head {\n  font-size: 12px;\n  color: var(--dsw-alias-label-caption);\n  padding-top: 4px;\n  padding-bottom: 7px;\n}\n.ma-rows {\n  min-height: 0;\n  max-height: 340px;\n  overflow: auto;\n}\n.ma-row {\n  width: 100%;\n  background: none;\n  border: 0;\n  border-radius: 10px;\n  min-height: 56px;\n  font: inherit;\n  color: inherit;\n  cursor: pointer;\n  text-align: left;\n}\n.ma-row:hover,\n.ma-row:focus-visible {\n  background: var(--dsw-alias-interactive-bg-hover);\n}\n.ma-row[aria-pressed="true"] {\n  background: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 10%,\n    var(--dsw-alias-bg-base)\n  );\n}\n.ma-model {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  min-width: 0;\n}\n.ma-model strong {\n  font-weight: 500;\n  white-space: nowrap;\n  text-overflow: ellipsis;\n  overflow: hidden;\n  min-width: 0;\n}\n.ma-context,\n.ma-ratio {\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n.ma-input-limit { display: block; font-size: 10px; color: var(--dsw-alias-label-caption); }\n.ma-caps {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  flex-wrap: wrap;\n}\n.ma-caps > span {\n  font-size: 11px;\n  line-height: 17px;\n  padding: 1px 5px;\n  border-radius: 6px;\n  background: var(--dsw-alias-bg-module-platform);\n  color: var(--dsw-alias-label-secondary);\n}\n.ma-caps small {\n  color: var(--dsw-alias-label-caption);\n  font-size: 12px;\n}\n.ma-check {\n  color: var(--dsw-alias-state-business-primary);\n  display: flex;\n  justify-content: center;\n}\n.ma-foot {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 11px;\n  color: var(--dsw-alias-label-caption);\n  margin: 8px 12px 0;\n  padding: 13px 0 15px;\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n  flex-shrink: 0;\n}\n.ma-foot svg {\n  flex-shrink: 0;\n}\n.ma-error {\n  padding: 10px;\n  color: var(--dsw-alias-state-error-primary);\n  font-size: 12px;\n  overflow-wrap: anywhere;\n}\n.ma-error button {\n  margin-left: 12px;\n  color: inherit;\n  font: inherit;\n  background: none;\n  border: 0;\n  cursor: pointer;\n  text-decoration: underline;\n}\n.ma-empty {\n  text-align: center;\n  padding: 35px;\n  color: var(--dsw-alias-label-tertiary);\n}\n.ma-effort {\n  padding: 9px 16px;\n  display: flex;\n  align-items: center;\n  gap: 14px;\n  color: var(--dsw-alias-label-secondary);\n  font-size: 12px;\n}\n.ma-effort-note {\n  color: var(--dsw-alias-label-caption);\n  font-size: 11px;\n  margin: 0;\n}\n.ma-effort-choices { display: flex; flex-wrap: wrap; gap: 6px; }\n.ma-effort-choices button {\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 7px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-secondary);\n  padding: 4px 10px;\n  font: inherit;\n  cursor: pointer;\n}\n.ma-effort-choices button[aria-pressed="true"] {\n  color: var(--dsw-alias-state-business-primary);\n  border-color: var(--dsw-alias-state-business-primary);\n  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 8%, var(--dsw-alias-bg-base));\n}\n.ma-text-button {\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-state-business-primary);\n  font: inherit;\n  font-size: 12px;\n  cursor: pointer;\n}\n.ma-editor {\n  margin-top: 34px;\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n  padding-top: 20px;\n}\n.ma-editor summary {\n  cursor: pointer;\n  font-size: 14px;\n}\n.ma-editor h2 { font-size: 15px; font-weight: 500; margin: 0; }\n.ma-field.ma-provider-kind { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(130px, 180px) 90px; align-items: center; }\n.ma-provider-kind small { color: var(--dsw-alias-label-tertiary); }\n.ma-reference { margin-top: 16px; padding: 12px; border: 0.5px solid var(--dsw-alias-border-l2); border-radius: 7px; font-size: 12px; overflow-wrap: anywhere; }\n.ma-reference a { color: var(--dsw-alias-state-business-primary); }\n@media (max-width: 600px) { .ma-field.ma-provider-kind { grid-template-columns: 1fr 1fr; } .ma-provider-kind small { grid-column: 1/-1; } }\n.ma-editor > p {\n  color: var(--dsw-alias-label-tertiary);\n  line-height: 1.7;\n  font-size: 12px;\n}\n.ma-field {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  font-size: 12px;\n  color: var(--dsw-alias-label-secondary);\n  margin-top: 16px;\n}\n.ma-field input,\n.ma-field select {\n  box-sizing: border-box;\n  min-width: 0;\n  width: 100%;\n  height: 34px;\n  font: inherit;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 7px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  padding: 5px 9px;\n}\n.ma-fields {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 0 18px;\n}\n.ma-primary {\n  font: inherit;\n  font-size: 12px;\n  background: var(--dsw-alias-state-business-primary);\n  color: var(--dsw-alias-label-primary-foreground);\n  border: 0;\n  border-radius: 7px;\n  padding: 8px 13px;\n  margin-top: 23px;\n  cursor: pointer;\n}\n@media (max-width: 850px) {\n  .ma-table-head,\n  .ma-row {\n    grid-template-columns: minmax(0, 1fr) 120px 115px 105px 18px;\n    gap: 7px;\n  }\n  .ma-model {\n    gap: 7px;\n    flex-wrap: wrap;\n  }\n  .ma-badge {\n    max-width: 110px;\n  }\n  .ma-trigger .ma-route-compact .ma-badge {\n    max-width: 150px;\n  }\n}\n@media (max-width: 650px) {\n  .ma-table-head {\n    display: none;\n  }\n  .ma-row {\n    grid-template-columns: 1fr auto 18px;\n    grid-template-rows: auto auto;\n    gap: 8px;\n    padding: 12px;\n    min-height: 82px;\n  }\n  .ma-model {\n    grid-column: 1/3;\n  }\n  .ma-context {\n    grid-row: 2;\n    grid-column: 1;\n    font-size: 11px;\n    color: var(--dsw-alias-label-secondary);\n  }\n  .ma-ratio {\n    grid-row: 2;\n    grid-column: 1;\n    margin-left: 140px;\n    font-size: 11px;\n    color: var(--dsw-alias-label-secondary);\n  }\n  .ma-caps {\n    grid-row: 2;\n    grid-column: 2;\n  }\n  .ma-check {\n    grid-row: 1/3;\n    grid-column: 3;\n  }\n  .ma-caps > span {\n    font-size: 10px;\n    padding: 0 4px;\n  }\n  .ma-filters {\n    gap: 6px;\n    flex-wrap: nowrap;\n    overflow: auto;\n  }\n  .ma-filters select {\n    font-size: 11px;\n    max-width: 140px;\n    padding: 5px 7px;\n  }\n  .ma-page {\n    padding-inline: 20px;\n  }\n  .ma-setting-row {\n    padding: 20px 16px;\n  }\n  .ma-setting-row p {\n    font-size: 11px;\n  }\n  .ma-trigger {\n    max-width: 46cqw;\n    font-size: 12px;\n    gap: 5px;\n  }\n  .ma-trigger .ma-cap-icons {\n    display: none;\n  }\n  .ma-fields {\n    grid-template-columns: 1fr;\n  }\n  .ma-foot {\n    font-size: 10px;\n  }\n  .ma-badge {\n    max-width: 100px;\n  }\n}\n\n.ma-embedded-page .ma-page { height: auto; padding: 8px 0 24px; }\n.ma-embedded-page .ma-back { display: none; }\n.ma-embedded-page .ma-page h1 { margin-top: 0; font-size: 18px; }\n';
+var styles_default = '.ma-page {\n  box-sizing: border-box;\n  height: 100%;\n  overflow: auto;\n  color: var(--dsw-alias-label-primary);\n  padding: calc(28px + var(--dsh-frame-top-clearance, 0px))\n    clamp(20px, 4vw, 48px) 48px;\n  font-size: 13px;\n}\n.ma-page-content {\n  max-width: 780px;\n  margin: 0 auto;\n}\n.ma-page h1 {\n  font-size: 22px;\n  font-weight: 500;\n  line-height: 30px;\n  margin: 24px 0 10px;\n}\n.ma-intro,\n.ma-note {\n  color: var(--dsw-alias-label-tertiary);\n  line-height: 1.7;\n}\n.ma-note {\n  font-size: 12px;\n  margin-top: 18px;\n}\n.ma-back {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  cursor: pointer;\n  padding: 4px 0;\n  font: inherit;\n}\n.ma-settings {\n  margin-top: 28px;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 16px;\n}\n.ma-setting-row {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 24px;\n  padding: 24px;\n}\n.ma-setting-row + .ma-setting-row {\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n}\n.ma-setting-row > div {\n  min-width: 0;\n}\n.ma-setting-row > div > span {\n  font-size: 14px;\n  font-weight: 500;\n}\n.ma-setting-row p {\n  font-size: 12px;\n  line-height: 1.7;\n  margin: 8px 0 0;\n  color: var(--dsw-alias-label-tertiary);\n}\n.ma-switch {\n  width: 42px;\n  height: 24px;\n  padding: 2px;\n  border: 0;\n  border-radius: 24px;\n  display: flex;\n  align-items: center;\n  flex-shrink: 0;\n  background: var(--dsw-alias-interactive-bg-hover);\n  cursor: pointer;\n}\n.ma-switch > span {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  background: var(--dsw-alias-label-secondary);\n  transition: transform 0.15s;\n}\n.ma-switch[aria-checked="true"] {\n  background: var(--dsw-alias-state-business-primary);\n}\n.ma-switch[aria-checked="true"] > span {\n  transform: translateX(18px);\n  background: var(--dsw-alias-label-primary-foreground);\n}\n.ma-page button:disabled,\n.ma-menu button:disabled {\n  opacity: 0.55;\n  cursor: default;\n}\n.ma-page button:focus-visible,\n.ma-page input:focus-visible,\n.ma-page select:focus-visible,\n.ma-menu button:focus-visible,\n.ma-menu input:focus-visible,\n.ma-menu select:focus-visible,\n.ma-trigger:focus-visible {\n  outline: 2px solid var(--dsw-alias-state-business-primary);\n  outline-offset: 2px;\n}\n.ma-effort-compact:focus-visible {\n  outline: 2px solid var(--dsw-alias-state-business-primary);\n  outline-offset: 2px;\n}\n.ma-seat {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  min-width: 0;\n  max-width: 100%;\n  white-space: nowrap;\n}\n.ma-effort-compact {\n  flex-shrink: 0;\n  max-width: 125px;\n  height: 28px;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  border: 0;\n  border-radius: 6px;\n  padding: 2px 4px;\n  font: inherit;\n  font-size: 12px;\n  cursor: pointer;\n}\n.ma-effort-compact:hover { background: var(--dsw-alias-interactive-bg-hover); }\n.ma-effort-compact:disabled { opacity: 0.55; cursor: default; }\n.ma-seat-error { color: var(--dsw-alias-state-error-primary); font-size: 11px; }\n.ma-trigger {\n  max-width: min(440px, 46cqw);\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  min-width: 0;\n  padding: 2px 4px 2px 8px;\n  border: 0;\n  border-radius: 6px;\n  height: 28px;\n  background: none;\n  color: var(--dsw-alias-label-secondary);\n  font: inherit;\n  font-size: 13px;\n  cursor: pointer;\n  white-space: nowrap;\n}\n.ma-trigger > span:first-child {\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n.ma-trigger > svg {\n  flex-shrink: 0;\n}\n.ma-trigger .ma-route-compact {\n  min-width: 0;\n  flex-shrink: 1;\n}\n.ma-trigger .ma-route-compact .ma-badge {\n  max-width: 180px;\n  white-space: nowrap;\n}\n.ma-trigger:hover {\n  background: var(--dsw-alias-interactive-bg-hover);\n}\n.ma-trigger:disabled {\n  opacity: 0.55;\n  cursor: default;\n}\n.ma-badges {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  white-space: nowrap;\n  flex-shrink: 0;\n}\n.ma-badge {\n  border: 0.5px solid var(--dsw-alias-border-l3);\n  background: var(--dsw-alias-bg-module-platform);\n  color: var(--dsw-alias-label-secondary);\n  border-radius: 5px;\n  padding: 1px 6px;\n  font-size: 11px;\n  line-height: 17px;\n  max-width: 150px;\n  text-overflow: ellipsis;\n  overflow: hidden;\n}\n.ma-channel {\n  color: var(--dsw-alias-state-business-primary);\n  border-color: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 40%,\n    transparent\n  );\n  background: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 6%,\n    var(--dsw-alias-bg-base)\n  );\n}\n.ma-cap-icons {\n  display: inline-flex;\n  align-items: center;\n  gap: 7px;\n  flex-shrink: 0;\n  color: var(--dsw-alias-label-caption);\n}\n.ma-menu {\n  box-sizing: border-box;\n  position: fixed;\n  z-index: 1200;\n  display: flex;\n  flex-direction: column;\n  width: min(900px, calc(100vw - 24px));\n  max-height: calc(100dvh - 32px);\n  padding: 16px 10px 0;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 16px;\n  box-shadow: var(--dsw-elevation-prominent);\n  font-size: 13px;\n  line-height: 1.5;\n}\n.ma-search {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin: 0 8px;\n  background: var(--dsw-alias-bg-module-platform);\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 9px;\n  padding: 8px 11px;\n  color: var(--dsw-alias-label-tertiary);\n  flex-shrink: 0;\n}\n.ma-search input {\n  min-width: 0;\n  flex: 1;\n  outline: 0 !important;\n  border: 0;\n  padding: 0;\n  background: none;\n  color: var(--dsw-alias-label-primary);\n  font: inherit;\n}\n.ma-search button {\n  padding: 0;\n  background: none;\n  border: 0;\n  color: inherit;\n  display: flex;\n  align-items: center;\n  cursor: pointer;\n}\n.ma-filters {\n  display: flex;\n  align-items: center;\n  gap: 9px;\n  flex-wrap: wrap;\n  padding: 15px 8px 17px;\n  flex-shrink: 0;\n}\n.ma-filters select {\n  max-width: 180px;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 18px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  font: inherit;\n  padding: 5px 12px;\n  cursor: pointer;\n}\n.ma-table-head,\n.ma-row {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) 125px 125px 140px 20px;\n  gap: 12px;\n  align-items: center;\n  padding: 10px 16px;\n}\n.ma-table-head {\n  font-size: 12px;\n  color: var(--dsw-alias-label-caption);\n  padding-top: 4px;\n  padding-bottom: 7px;\n}\n.ma-rows {\n  min-height: 0;\n  max-height: 340px;\n  overflow: auto;\n}\n.ma-row {\n  width: 100%;\n  background: none;\n  border: 0;\n  border-radius: 10px;\n  min-height: 56px;\n  font: inherit;\n  color: inherit;\n  cursor: pointer;\n  text-align: left;\n}\n.ma-row:hover,\n.ma-row:focus-visible {\n  background: var(--dsw-alias-interactive-bg-hover);\n}\n.ma-row[aria-pressed="true"] {\n  background: color-mix(\n    in srgb,\n    var(--dsw-alias-state-business-primary) 10%,\n    var(--dsw-alias-bg-base)\n  );\n}\n.ma-model {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  min-width: 0;\n}\n.ma-model strong {\n  font-weight: 500;\n  white-space: nowrap;\n  text-overflow: ellipsis;\n  overflow: hidden;\n  min-width: 0;\n}\n.ma-context,\n.ma-ratio {\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n.ma-input-limit { display: block; font-size: 10px; color: var(--dsw-alias-label-caption); }\n.ma-caps {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  flex-wrap: wrap;\n}\n.ma-caps > span {\n  font-size: 11px;\n  line-height: 17px;\n  padding: 1px 5px;\n  border-radius: 6px;\n  background: var(--dsw-alias-bg-module-platform);\n  color: var(--dsw-alias-label-secondary);\n}\n.ma-caps small {\n  color: var(--dsw-alias-label-caption);\n  font-size: 12px;\n}\n.ma-check {\n  color: var(--dsw-alias-state-business-primary);\n  display: flex;\n  justify-content: center;\n}\n.ma-foot {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 11px;\n  color: var(--dsw-alias-label-caption);\n  margin: 8px 12px 0;\n  padding: 13px 0 15px;\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n  flex-shrink: 0;\n}\n.ma-foot svg {\n  flex-shrink: 0;\n}\n.ma-error {\n  padding: 10px;\n  color: var(--dsw-alias-state-error-primary);\n  font-size: 12px;\n  overflow-wrap: anywhere;\n}\n.ma-error button {\n  margin-left: 12px;\n  color: inherit;\n  font: inherit;\n  background: none;\n  border: 0;\n  cursor: pointer;\n  text-decoration: underline;\n}\n.ma-empty {\n  text-align: center;\n  padding: 35px;\n  color: var(--dsw-alias-label-tertiary);\n}\n.ma-effort {\n  padding: 9px 16px;\n  display: flex;\n  align-items: center;\n  gap: 14px;\n  color: var(--dsw-alias-label-secondary);\n  font-size: 12px;\n}\n.ma-effort-note {\n  color: var(--dsw-alias-label-caption);\n  font-size: 11px;\n  margin: 0;\n}\n.ma-native-options { flex-shrink: 0; }\n.ma-effort-choices { display: flex; flex-wrap: wrap; gap: 6px; }\n.ma-effort-choices button {\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 7px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-secondary);\n  padding: 4px 10px;\n  font: inherit;\n  cursor: pointer;\n}\n.ma-effort-choices button[aria-pressed="true"] {\n  color: var(--dsw-alias-state-business-primary);\n  border-color: var(--dsw-alias-state-business-primary);\n  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 8%, var(--dsw-alias-bg-base));\n}\n.ma-text-button {\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-state-business-primary);\n  font: inherit;\n  font-size: 12px;\n  cursor: pointer;\n}\n.ma-editor {\n  margin-top: 34px;\n  border-top: 0.5px solid var(--dsw-alias-border-l2);\n  padding-top: 20px;\n}\n.ma-editor summary {\n  cursor: pointer;\n  font-size: 14px;\n}\n.ma-editor h2 { font-size: 15px; font-weight: 500; margin: 0; }\n.ma-field.ma-provider-kind { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(130px, 180px) 90px; align-items: center; }\n.ma-provider-kind small { color: var(--dsw-alias-label-tertiary); }\n.ma-reference { margin-top: 16px; padding: 12px; border: 0.5px solid var(--dsw-alias-border-l2); border-radius: 7px; font-size: 12px; overflow-wrap: anywhere; }\n.ma-reference a { color: var(--dsw-alias-state-business-primary); }\n@media (max-width: 600px) { .ma-field.ma-provider-kind { grid-template-columns: 1fr 1fr; } .ma-provider-kind small { grid-column: 1/-1; } }\n.ma-editor > p {\n  color: var(--dsw-alias-label-tertiary);\n  line-height: 1.7;\n  font-size: 12px;\n}\n.ma-field {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  font-size: 12px;\n  color: var(--dsw-alias-label-secondary);\n  margin-top: 16px;\n}\n.ma-field input,\n.ma-field select {\n  box-sizing: border-box;\n  min-width: 0;\n  width: 100%;\n  height: 34px;\n  font: inherit;\n  border: 0.5px solid var(--dsw-alias-border-l2);\n  border-radius: 7px;\n  background: var(--dsw-alias-bg-base);\n  color: var(--dsw-alias-label-primary);\n  padding: 5px 9px;\n}\n.ma-fields {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 0 18px;\n}\n.ma-primary {\n  font: inherit;\n  font-size: 12px;\n  background: var(--dsw-alias-state-business-primary);\n  color: var(--dsw-alias-label-primary-foreground);\n  border: 0;\n  border-radius: 7px;\n  padding: 8px 13px;\n  margin-top: 23px;\n  cursor: pointer;\n}\n@media (max-width: 850px) {\n  .ma-table-head,\n  .ma-row {\n    grid-template-columns: minmax(0, 1fr) 120px 115px 105px 18px;\n    gap: 7px;\n  }\n  .ma-model {\n    gap: 7px;\n    flex-wrap: wrap;\n  }\n  .ma-badge {\n    max-width: 110px;\n  }\n  .ma-trigger .ma-route-compact .ma-badge {\n    max-width: 150px;\n  }\n}\n@media (max-width: 650px) {\n  .ma-table-head {\n    display: none;\n  }\n  .ma-row {\n    grid-template-columns: 1fr auto 18px;\n    grid-template-rows: auto auto;\n    gap: 8px;\n    padding: 12px;\n    min-height: 82px;\n  }\n  .ma-model {\n    grid-column: 1/3;\n  }\n  .ma-context {\n    grid-row: 2;\n    grid-column: 1;\n    font-size: 11px;\n    color: var(--dsw-alias-label-secondary);\n  }\n  .ma-ratio {\n    grid-row: 2;\n    grid-column: 1;\n    margin-left: 140px;\n    font-size: 11px;\n    color: var(--dsw-alias-label-secondary);\n  }\n  .ma-caps {\n    grid-row: 2;\n    grid-column: 2;\n  }\n  .ma-check {\n    grid-row: 1/3;\n    grid-column: 3;\n  }\n  .ma-caps > span {\n    font-size: 10px;\n    padding: 0 4px;\n  }\n  .ma-filters {\n    gap: 6px;\n    flex-wrap: nowrap;\n    overflow: auto;\n  }\n  .ma-filters select {\n    font-size: 11px;\n    max-width: 140px;\n    padding: 5px 7px;\n  }\n  .ma-page {\n    padding-inline: 20px;\n  }\n  .ma-setting-row {\n    padding: 20px 16px;\n  }\n  .ma-setting-row p {\n    font-size: 11px;\n  }\n  .ma-trigger {\n    max-width: 46cqw;\n    font-size: 12px;\n    gap: 5px;\n  }\n  .ma-trigger .ma-cap-icons {\n    display: none;\n  }\n  .ma-fields {\n    grid-template-columns: 1fr;\n  }\n  .ma-foot {\n    font-size: 10px;\n  }\n  .ma-badge {\n    max-width: 100px;\n  }\n}\n\n.ma-embedded-page .ma-page { height: auto; padding: 8px 0 24px; }\n.ma-embedded-page .ma-back { display: none; }\n.ma-embedded-page .ma-page h1 { margin-top: 0; font-size: 18px; }\n';
 
 // src/provenance.js
 var isOfficialProvider = (provider) => ["deepseek-account", "deepseek-official"].includes(provider);
@@ -129,9 +129,67 @@ function missingSelection(current, nativeGroups) {
   };
 }
 
+// src/filters.js
+var STORAGE_KEY = "local-model-assistant:picker-filters:v1";
+var EMPTY_FILTERS = Object.freeze({ kind: "", channel: "", supplier: "", capability: "", minContext: "" });
+function normalizeFilters(value) {
+  const filters = { ...EMPTY_FILTERS };
+  if (!value || typeof value !== "object" || Array.isArray(value)) return filters;
+  for (const field of ["channel", "supplier"])
+    if (typeof value[field] === "string" && value[field].length <= 512) filters[field] = value[field];
+  if (["official", "thirdParty", "custom"].includes(value.kind)) filters.kind = value.kind;
+  if (["text", "reasoning", "tools", "vision", "streaming"].includes(value.capability)) filters.capability = value.capability;
+  if (["64000", "128000", "1000000"].includes(value.minContext)) filters.minContext = value.minContext;
+  if (filters.kind === "official") {
+    filters.channel = "";
+    filters.supplier = "";
+  }
+  return filters;
+}
+function readPickerFilters() {
+  try {
+    return normalizeFilters(JSON.parse(globalThis.localStorage?.getItem(STORAGE_KEY) || "null"));
+  } catch {
+    return { ...EMPTY_FILTERS };
+  }
+}
+function savePickerFilters(filters) {
+  try {
+    globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(normalizeFilters(filters)));
+  } catch {
+  }
+}
+
 // src/client.jsx
 var NS = "local-model-assistant";
 var PANEL = "local-model-assistant";
+var NATIVE_OPTIONS = "conversation.input.model.options";
+var TEAM_OPTIONS = "local-model-assistant.model.options";
+function mountTeamOptions(ctx) {
+  return ctx.slots.inject(NATIVE_OPTIONS, () => {
+    let source, remove;
+    const sync = () => {
+      const next = ctx.slots.entriesOfSlot(NATIVE_OPTIONS).find((entry) => entry.options.id === "agent-team");
+      if (source === next) return;
+      remove?.();
+      remove = void 0;
+      source = next;
+      if (next) remove = ctx.slots.register({
+        ...next.options,
+        name: TEAM_OPTIONS,
+        locale: next.locale,
+        inject: next.inject,
+        ...next.store ? { store: next.store } : {}
+      }, next.component);
+    };
+    const unsubscribe = ctx.slots.subscribe(NATIVE_OPTIONS, sync);
+    sync();
+    return () => {
+      unsubscribe();
+      remove?.();
+    };
+  });
+}
 var ViewBoundary = class extends import_react.default.Component {
   state = { error: null };
   static getDerivedStateFromError(error) {
@@ -147,7 +205,7 @@ var dictionaries = {
     intro: "\u7BA1\u7406\u804A\u5929\u6846\u4E2D\u7684\u6A21\u578B\u4FE1\u606F\u5C55\u793A\u4E0E\u7B5B\u9009\u529F\u80FD\u3002",
     back: "\u8FD4\u56DE\u5BF9\u8BDD",
     enabled: "\u542F\u7528\u6A21\u578B\u52A9\u624B",
-    enabledHint: "\u540C\u6B65\u5DF2\u914D\u7F6E\u6A21\u578B\u7684\u8F93\u5165\u7C7B\u578B\u548C\u63A8\u7406\u7B49\u7EA7\uFF0C\u5E76\u6309\u751F\u6548\u80FD\u529B\u5C55\u793A\u4E0E\u7B5B\u9009\u3002",
+    enabledHint: "\u540C\u6B65\u63A5\u53E3\u58F0\u660E\u7684\u4E0A\u4E0B\u6587\u5BB9\u91CF\u3001\u8F93\u5165\u7C7B\u578B\u548C\u63A8\u7406\u7B49\u7EA7\uFF0C\u5E76\u6309\u751F\u6548\u80FD\u529B\u5C55\u793A\u4E0E\u7B5B\u9009\u3002",
     sidebar: "\u5728\u4FA7\u680F\u663E\u793A\u5165\u53E3",
     sidebarHint: "\u9690\u85CF\u540E\u4ECD\u53EF\u4ECE\u8BBE\u7F6E\u4E2D\u7684\u300C\u6A21\u578B\u52A9\u624B\u300D\u8FDB\u5165\u3002",
     saved: "\u8BBE\u7F6E\u81EA\u52A8\u4FDD\u5B58\u3002\u5173\u95ED\u529F\u80FD\u540E\u4F7F\u7528\u5BBF\u4E3B\u539F\u6709\u6A21\u578B\u9009\u62E9\u5668\u3002",
@@ -238,7 +296,7 @@ var dictionaries = {
     intro: "Manage model information and filters in the chat composer.",
     back: "Back to chat",
     enabled: "Enable Model Assistant",
-    enabledHint: "Show channel, supplier, context, multipliers and capabilities with filters.",
+    enabledHint: "Synchronize advertised context capacity, input and reasoning capabilities, then display and filter effective capabilities.",
     sidebar: "Show sidebar entry",
     sidebarHint: "If hidden, open Model Assistant from Settings.",
     saved: "Changes save automatically. Turning this off restores the native model selector.",
@@ -649,10 +707,16 @@ function ModelSeat({
   loadRemote,
   prepare,
   select,
+  renderSlot,
   t
 }) {
   const nativeState = useDirectory((s) => s), preferences = usePreferences((s) => s.value), hostSettings = useHostSettings((s) => s);
-  const [open, setOpen] = (0, import_react.useState)(false), [query, setQuery] = (0, import_react.useState)(""), [channel, setChannel] = (0, import_react.useState)(""), [kind, setKind] = (0, import_react.useState)(""), [supplier, setSupplier] = (0, import_react.useState)(""), [capability, setCapability] = (0, import_react.useState)(""), [minContext, setMinContext] = (0, import_react.useState)(""), [error, setError] = (0, import_react.useState)(""), [position, setPosition] = (0, import_react.useState)(null), [active, setActive] = (0, import_react.useState)(-1);
+  const [open, setOpen] = (0, import_react.useState)(false), [query, setQuery] = (0, import_react.useState)(""), [error, setError] = (0, import_react.useState)(""), [position, setPosition] = (0, import_react.useState)(null), [active, setActive] = (0, import_react.useState)(-1);
+  const [filters, setFilters] = (0, import_react.useState)(readPickerFilters);
+  const { channel, kind, supplier, capability, minContext } = filters;
+  (0, import_react.useEffect)(() => {
+    savePickerFilters(filters);
+  }, [filters]);
   const [remoteCatalog, setRemoteCatalog] = (0, import_react.useState)(null);
   const [refreshing, setRefreshing] = (0, import_react.useState)(false);
   const [preparing, setPreparing] = (0, import_react.useState)(false);
@@ -796,15 +860,21 @@ function ModelSeat({
     if (busy || locked) return;
     const same = state.current?.provider === row.group.id && state.current.model === row.model.id;
     const reasoningEffort = !row.model.reasoning?.efforts.length || effort === null ? void 0 : effort !== void 0 ? effort : same ? effectiveEffort : row.model.reasoning?.defaultEffort;
+    if (same && (reasoningEffort ?? null) === (effectiveEffort ?? null)) {
+      close();
+      return;
+    }
     setError("");
     setPreparing(true);
     try {
-      const ready = await prepare(row.group.id, row.model.id, reasoningEffort ?? null);
-      if (!ready.ok) throw new Error("prepare failed");
-      if (ready.value.changed) {
-        await load();
-        const catalog = await loadRemote(false);
-        if (catalog.ok) setRemoteCatalog(catalog.value);
+      if (!same) {
+        const ready = await prepare(row.group.id, row.model.id, reasoningEffort ?? null);
+        if (!ready.ok) throw new Error("prepare failed");
+        if (ready.value.changed) {
+          await load();
+          const catalog = await loadRemote(false);
+          if (catalog.ok) setRemoteCatalog(catalog.value);
+        }
       }
       const result = await select({
         provider: row.group.id,
@@ -825,7 +895,7 @@ function ModelSeat({
       e.stopPropagation();
       close();
     }
-    if (e.target.tagName === "SELECT") return;
+    if (e.target.tagName === "SELECT" || e.target.closest(".ma-native-options")) return;
     if (["ArrowDown", "ArrowUp"].includes(e.key) && filtered.length) {
       e.preventDefault();
       const n = e.key === "ArrowDown" ? (active + 1) % filtered.length : active <= 0 ? filtered.length - 1 : active - 1;
@@ -836,13 +906,10 @@ function ModelSeat({
       choose(filtered[Math.max(0, active)] || filtered[0]);
     }
   }
+  const updateFilters = (patch) => setFilters((previous) => ({ ...previous, ...patch }));
   const reset = () => {
     setQuery("");
-    setChannel("");
-    setKind("");
-    setSupplier("");
-    setCapability("");
-    setMinContext("");
+    setFilters(EMPTY_FILTERS);
   };
   const ratio = (n) => knownNumber(n) ? `\xD7${n}` : t("unknown");
   const popup = /* @__PURE__ */ import_react.default.createElement(
@@ -875,16 +942,12 @@ function ModelSeat({
       },
       /* @__PURE__ */ import_react.default.createElement(Icon, { kind: "close", size: 15 })
     ) : null, /* @__PURE__ */ import_react.default.createElement("button", { "aria-label": t("close"), onClick: close }, /* @__PURE__ */ import_react.default.createElement(Icon, { kind: "close", size: 16 }))),
-    /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-filters" }, /* @__PURE__ */ import_react.default.createElement("button", { className: "ma-text-button", disabled: refreshing || busy, onClick: () => refreshRemote(true) }, refreshing ? t("loading") : t("refresh")), /* @__PURE__ */ import_react.default.createElement("select", { "aria-label": t("kinds"), value: kind, onChange: (e) => {
-      setKind(e.target.value);
-      setChannel("");
-      setSupplier("");
-    } }, /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("kinds")), ["official", "thirdParty", "custom"].map((value) => /* @__PURE__ */ import_react.default.createElement("option", { key: value, value }, t(value)))), hasChannels ? /* @__PURE__ */ import_react.default.createElement(
+    /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-filters" }, /* @__PURE__ */ import_react.default.createElement("button", { className: "ma-text-button", disabled: refreshing || busy, onClick: () => refreshRemote(true) }, refreshing ? t("loading") : t("refresh")), /* @__PURE__ */ import_react.default.createElement("select", { "aria-label": t("kinds"), value: kind, onChange: (e) => updateFilters({ kind: e.target.value, channel: "", supplier: "" }) }, /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("kinds")), ["official", "thirdParty", "custom"].map((value) => /* @__PURE__ */ import_react.default.createElement("option", { key: value, value }, t(value)))), hasChannels ? /* @__PURE__ */ import_react.default.createElement(
       "select",
       {
         "aria-label": t("channels"),
         value: channel,
-        onChange: (e) => setChannel(e.target.value)
+        onChange: (e) => updateFilters({ channel: e.target.value })
       },
       /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("channels")),
       state.groups.filter((group) => group.kind !== "official").map((group) => /* @__PURE__ */ import_react.default.createElement("option", { key: group.id, value: group.id }, group.name))
@@ -893,7 +956,7 @@ function ModelSeat({
       {
         "aria-label": t("suppliers"),
         value: supplier,
-        onChange: (e) => setSupplier(e.target.value)
+        onChange: (e) => updateFilters({ supplier: e.target.value })
       },
       /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("suppliers")),
       [...new Set(all.filter((row) => row.group.kind !== "official").map((row) => row.info.supplier || "__unknown"))].map(
@@ -904,7 +967,7 @@ function ModelSeat({
       {
         "aria-label": t("capability"),
         value: capability,
-        onChange: (e) => setCapability(e.target.value)
+        onChange: (e) => updateFilters({ capability: e.target.value })
       },
       /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("capability")),
       ["text", "reasoning", "tools", "vision", "streaming"].map((key) => /* @__PURE__ */ import_react.default.createElement("option", { key, value: key }, t(key)))
@@ -913,7 +976,7 @@ function ModelSeat({
       {
         "aria-label": t("context"),
         value: minContext,
-        onChange: (e) => setMinContext(e.target.value)
+        onChange: (e) => updateFilters({ minContext: e.target.value })
       },
       /* @__PURE__ */ import_react.default.createElement("option", { value: "" }, t("context")),
       [64e3, 128e3, 1e6].map((value) => /* @__PURE__ */ import_react.default.createElement("option", { key: value, value }, "\u2265 ", formatContext(value)))
@@ -971,6 +1034,11 @@ ${t("knowledgeCutoff")}: ${row.info.knowledgeCutoff}` : ""}` : void 0 }, /* @__P
       },
       item.name
     )))) : null,
+    renderSlot ? /* @__PURE__ */ import_react.default.createElement("div", { className: "ma-native-options" }, renderSlot(TEAM_OPTIONS, {
+      locked: locked || busy,
+      dismiss: close,
+      reportFailure: setError
+    })) : null,
     remoteCatalog?.failures.length ? /* @__PURE__ */ import_react.default.createElement("p", { className: "ma-effort ma-effort-note", role: "status" }, t("fallbackCatalog"), " ", remoteCatalog.failures.map((f) => `${f.id}: ${f.code}`).join(" \xB7 ")) : null,
     remoteCatalog?.research ? /* @__PURE__ */ import_react.default.createElement("p", { className: "ma-effort ma-effort-note", role: "status" }, remoteCatalog.research.code === "HOST_RELOAD_REQUIRED" ? t("hostReload") : remoteCatalog.research.code ? `${t("researchUnavailable")} (${remoteCatalog.research.code})` : !remoteCatalog.research.disabled ? `${t("researchUpdated")}: ${remoteCatalog.research.updated} / ${remoteCatalog.research.attempted} \xB7 ${remoteCatalog.research.total}${remoteCatalog.research.limited ? ` \xB7 ${t("researchLimited")}` : ""}` : "") : null,
     current?.unlisted ? /* @__PURE__ */ import_react.default.createElement("p", { className: "ma-effort ma-effort-note", role: "status" }, t("unlistedCurrent")) : null,
@@ -987,7 +1055,7 @@ ${t("knowledgeCutoff")}: ${row.info.knowledgeCutoff}` : ""}` : void 0 }, /* @__P
       "aria-expanded": open,
       onClick: () => {
         if (!open) {
-          reset();
+          setQuery("");
           setPosition(null);
           if (!refreshing) refreshRemote(false);
         }
@@ -1092,13 +1160,13 @@ function apply(ctx) {
       removeSidebar = void 0;
     }
     if (prefs.enabled && !removeSeat)
-      removeSeat = ctx.slots.inject(
-        "conversation.input.model",
-        () => ctx.slots.register(
+      removeSeat = ctx.slots.inject("conversation.input.model", function* () {
+        yield ctx.slots.register(
           {
             name: "conversation.input.model",
             priority: -100,
             locale: NS,
+            children: { [TEAM_OPTIONS]: { kind: "list", scope: "session" } },
             inject: (sessionId) => {
               const directory = ctx.modelDirectories.directoryFor(sessionId);
               return {
@@ -1116,8 +1184,9 @@ function apply(ctx) {
             }
           },
           ModelSeat
-        )
-      );
+        );
+        yield mountTeamOptions(ctx);
+      });
     if (!prefs.enabled && removeSeat) {
       removeSeat();
       removeSeat = void 0;

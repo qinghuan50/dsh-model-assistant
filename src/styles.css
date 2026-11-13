@@ -409,6 +409,7 @@
   font-size: 11px;
   margin: 0;
 }
+.ma-native-options { flex-shrink: 0; }
 .ma-effort-choices { display: flex; flex-wrap: wrap; gap: 6px; }
 .ma-effort-choices button {
   border: 0.5px solid var(--dsw-alias-border-l2);

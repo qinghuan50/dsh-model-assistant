@@ -48,7 +48,7 @@ export function apply(ctx) {
   ctx.inject(["tools", "modelAssistant"], (child) => {
     child.tools.register({
       name: "model_assistant_catalog",
-      description: "Read model catalogs and synchronize configured input/reasoning capabilities while Model Assistant is enabled, or prepare an advertised model for native selection. Web research runs only on explicit UI refresh. Never returns API keys or headers.",
+      description: "Read model catalogs and synchronize configured context/input/reasoning capabilities while Model Assistant is enabled, or prepare an advertised model for native selection. Web research runs only on explicit UI refresh. Never returns API keys or headers.",
       parameters: {
         type: "object", additionalProperties: false, required: ["action"],
         properties: {
